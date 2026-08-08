@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-08-08T17:06:01.802Z",
+  "exported_at": "2026-08-08T17:10:32.810Z",
   "skills": [
     {
       "full_name": "obra/superpowers",
@@ -1097,7 +1097,10 @@
       "lang": "TypeScript",
       "url": "https://github.com/antfu/skills",
       "tags": [
-        "collection"
+        "tool",
+        "zh",
+        "official",
+        "sync-test"
       ],
       "cloned": true
     },
