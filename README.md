@@ -8,12 +8,11 @@
 git clone https://github.com/xdlkc/skills-leaderboard.git   # 私有仓库需已配置 GitHub 认证
 cd skills-leaderboard
 npm install          # 安装前端依赖
-npm run import       # 从同步的 data/skills.json 导入列表 + clone 标记（无需 seed）
-npm run clone-all    # 【可选】按同步的 clone 标记批量拉取所有已标记仓库
+npm run setup:first  # 一键：import（恢复列表+clone 标记）+ clone-all（批量拉取标记仓库）
 npm run dev:all      # 同时启动后端(:8787) + 前端(:5173)
 ```
 
-打开 http://localhost:5173 。**不需要手动一个个 clone**——列表和 clone 标记已同步在 `data/skills.json`，执行 `npm run clone-all` 即可把另一台机器上已 clone 的仓库全部拉下来（已有目录自动跳过）。
+打开 http://localhost:5173 。`setup:first` 会把另一台机器已 clone 的仓库全部拉到本地（已有目录自动跳过），无需手动一个个点。
 
 ## 🔄 多机同步（pull / push）
 

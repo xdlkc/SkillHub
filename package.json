@@ -15,6 +15,7 @@
     "import": "node scripts/sync.mjs import",
     "import:prune": "node scripts/sync.mjs import --prune",
     "clone-all": "node scripts/clone-all.mjs",
+    "setup:first": "npm run import && npm run clone-all",
     "server": "node server/index.mjs"
   },
   "dependencies": {
