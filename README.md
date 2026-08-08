@@ -38,7 +38,7 @@ npm run clone-all                    # 按同步的 clone 标记批量拉取缺�
 npm run import:prune
 ```
 
-> 页面内对列表的修改（录入/打标/删除/clone）即时写入本地 SQLite，**记得 `npm run export` 后再 push** 才能同步到对端。页面顶部的「⧉ 批量 clone」按钮等价于 `npm run clone-all`。
+> 页面内对列表的修改（录入/打标/删除/clone）即时写入本地 SQLite，**后端默认自动同步远端**：每次管理操作约 2.5 秒后自动 `export → git commit → git push`（commit 作者为 `SKILLS-INDEX Bot`）。关闭自动同步：`AUTO_SYNC=off npm run dev:server`，之后手动 `npm run export` + `git push`。页面顶部的「⧉ 批量 clone」按钮等价于 `npm run clone-all`。
 
 ## 技术栈
 

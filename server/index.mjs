@@ -31,8 +31,68 @@ process.removeAllListeners('warning');
 const PORT = process.env.PORT || 8787;
 const REGISTRY = process.env.SKILLS_REGISTRY || path.join(os.homedir(), 'Code', 'skills-registry');
 const DB_PATH = path.join(import.meta.dirname, '..', 'data', 'skills.db');
+const PROJECT_ROOT = path.join(import.meta.dirname, '..');
+const JSON_PATH = path.join(PROJECT_ROOT, 'data', 'skills.json');
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 fs.mkdirSync(REGISTRY, { recursive: true });
+
+/* =============== 自动同步：操作 → export skills.json → git push =============== */
+const AUTO_SYNC = process.env.AUTO_SYNC !== 'off'; // 默认开启，AUTO_SYNC=off 关闭
+const GIT_NAME = process.env.SYNC_GIT_NAME || 'SKILLS-INDEX Bot';
+const GIT_EMAIL = process.env.SYNC_GIT_EMAIL || 'skills-bot@users.noreply.github.com';
+let syncTimer = null;
+let syncDirty = false;
+
+function exportJsonNow() {
+  try {
+    const rows = db.prepare('SELECT full_name, stars, desc, lang, url, tags, cloned FROM skills ORDER BY stars DESC').all();
+    const skills = rows.map((r) => ({
+      full_name: r.full_name,
+      stars: r.stars,
+      desc: r.desc,
+      lang: r.lang,
+      url: r.url,
+      tags: safeTags(r.tags),
+      cloned: !!r.cloned,
+    }));
+    const payload = { version: 1, exported_at: new Date().toISOString(), skills };
+    fs.writeFileSync(JSON_PATH, JSON.stringify(payload, null, 2) + '\n');
+    return true;
+  } catch (e) {
+    console.error('[auto-sync] export 失败:', e.message);
+    return false;
+  }
+}
+
+async function pushJsonNow() {
+  try {
+    // 有变更才提交
+    const { stdout: diff } = await exec('git', ['-C', PROJECT_ROOT, 'status', '--porcelain', '--', 'data/skills.json']);
+    if (!diff.trim()) return { pushed: false, reason: 'no-change' };
+    await exec('git', ['-C', PROJECT_ROOT, 'add', 'data/skills.json']);
+    await exec('git', ['-C', PROJECT_ROOT, '-c', `user.name=${GIT_NAME}`, '-c', `user.email=${GIT_EMAIL}`, 'commit', '-m', 'auto-sync: 列表更新（后端自动同步）']);
+    const { stdout: pushOut } = await exec('git', ['-C', PROJECT_ROOT, 'push'], { timeout: 60000 });
+    console.log('[auto-sync] 已推送远端:', pushOut.trim().split('\n').slice(-1)[0]);
+    return { pushed: true };
+  } catch (e) {
+    console.error('[auto-sync] push 失败（稍后操作会重试）:', e.message.split('\n')[0]);
+    return { pushed: false, reason: e.message.split('\n')[0] };
+  }
+}
+
+/** 标记数据变更：防抖 2.5s 后 export + push */
+function markDirty() {
+  if (!AUTO_SYNC) return;
+  syncDirty = true;
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(async () => {
+    syncTimer = null;
+    if (!syncDirty) return;
+    syncDirty = false;
+    if (!exportJsonNow()) return;
+    await pushJsonNow();
+  }, 2500);
+}
 
 const exec = promisify(execFile);
 const db = new DatabaseSync(DB_PATH);
@@ -242,6 +302,7 @@ const server = createServer(async (req, res) => {
         JSON.stringify(Array.isArray(b.tags) ? b.tags : [])
       );
       const row = db.prepare('SELECT * FROM skills WHERE id = ?').get(info.lastInsertRowid);
+      markDirty();
       return send(res, 201, { skill: rowToSkill(row) });
     }
 
@@ -268,6 +329,7 @@ const server = createServer(async (req, res) => {
         `UPDATE skills SET stars = ?, desc = ?, lang = ?, url = ?, tags = ?, updated_at = datetime('now') WHERE id = ?`
       ).run(upd.stars, upd.desc, upd.lang, upd.url, upd.tags, id);
       const row = db.prepare('SELECT * FROM skills WHERE id = ?').get(id);
+      markDirty();
       return send(res, 200, { skill: rowToSkill(row) });
     }
 
@@ -276,6 +338,7 @@ const server = createServer(async (req, res) => {
     if (method === 'DELETE' && delMatch) {
       const info = db.prepare('DELETE FROM skills WHERE id = ?').run(Number(delMatch[1]));
       if (info.changes === 0) return send(res, 404, { error: 'not found' });
+      markDirty();
       return send(res, 200, { ok: true });
     }
 
@@ -334,6 +397,7 @@ const server = createServer(async (req, res) => {
         db.prepare(
           "UPDATE skills SET cloned = 1, clone_path = ?, updated_at = datetime('now') WHERE id = ?"
         ).run(dir, row.id);
+        markDirty();
         return send(res, 200, { ...result, id: row.id });
       } catch (e) {
         return send(res, 500, { error: `clone 失败: ${e.message}` });
@@ -375,6 +439,7 @@ const server = createServer(async (req, res) => {
       try {
         fs.rmSync(dir, { recursive: true, force: true });
         db.prepare("UPDATE skills SET cloned = 0, clone_path = '', updated_at = datetime('now') WHERE id = ?").run(row.id);
+        markDirty();
         return send(res, 200, { ok: true });
       } catch (e) {
         return send(res, 500, { error: `删除失败: ${e.message}` });
@@ -398,6 +463,7 @@ const server = createServer(async (req, res) => {
           updated++;
         }
       }
+      if (updated > 0) markDirty();
       return send(res, 200, { ok: true, updated, registry: REGISTRY });
     }
 
@@ -459,6 +525,7 @@ const server = createServer(async (req, res) => {
             clone = await doClone(row.full_name, dir);
             db.prepare("UPDATE skills SET cloned = 1, clone_path = ?, updated_at = datetime('now') WHERE id = ?").run(dir, row.id);
             cloned = true;
+            markDirty();
           } catch (e) {
             return send(res, 200, { skill: rowToSkill(row), imported: true, cloned: false, clone_error: e.message });
           }
