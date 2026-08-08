@@ -1,0 +1,922 @@
+[
+ {
+  "desc": "An agentic skills framework & software development methodology that works.",
+  "full_name": "obra/superpowers",
+  "lang": "Shell",
+  "stars": 268877,
+  "url": "https://github.com/obra/superpowers",
+  "score": 4
+ },
+ {
+  "desc": "The agent harness performance optimization system. Skills, instincts, memory, security, and research-first development for Claude Code, Codex, Opencode, Cursor and beyond.",
+  "full_name": "affaan-m/ECC",
+  "lang": "JavaScript",
+  "stars": 238631,
+  "url": "https://github.com/affaan-m/ECC",
+  "score": 3
+ },
+ {
+  "desc": "Skills for Real Engineers. Straight from my .agents directory.",
+  "full_name": "mattpocock/skills",
+  "lang": "Shell",
+  "stars": 209097,
+  "url": "https://github.com/mattpocock/skills",
+  "score": 6
+ },
+ {
+  "desc": "A single CLAUDE.md file to improve Claude Code behavior, derived from Andrej Karpathy's observations on LLM coding pitfalls.",
+  "full_name": "multica-ai/andrej-karpathy-skills",
+  "lang": "",
+  "stars": 200567,
+  "url": "https://github.com/multica-ai/andrej-karpathy-skills",
+  "score": 2
+ },
+ {
+  "desc": "Public repository for Agent Skills",
+  "full_name": "anthropics/skills",
+  "lang": "Python",
+  "stars": 166926,
+  "url": "https://github.com/anthropics/skills",
+  "score": 6
+ },
+ {
+  "desc": "Turn any codebase, with its docs, SQL schemas, configs, and PDFs, into a queryable knowledge graph. A /graphify skill for Claude Code, Cursor, Codex, and Gemini CLI: local deterministic AST parsing, every edge explained, no vector store.",
+  "full_name": "Graphify-Labs/graphify",
+  "lang": "Python",
+  "stars": 104096,
+  "url": "https://github.com/Graphify-Labs/graphify",
+  "score": 4
+ },
+ {
+  "desc": "🪨 why use many token when few token do trick — Claude Code skill that cuts 65% of tokens by talking like caveman",
+  "full_name": "JuliusBrussee/caveman",
+  "lang": "JavaScript",
+  "stars": 96748,
+  "url": "https://github.com/JuliusBrussee/caveman",
+  "score": 4
+ },
+ {
+  "desc": "Production-grade engineering skills for AI coding agents.",
+  "full_name": "addyosmani/agent-skills",
+  "lang": "JavaScript",
+  "stars": 84042,
+  "url": "https://github.com/addyosmani/agent-skills",
+  "score": 6
+ },
+ {
+  "desc": "A curated list of awesome Claude Skills, resources, and tools for customizing Claude AI workflows",
+  "full_name": "ComposioHQ/awesome-claude-skills",
+  "lang": "Python",
+  "stars": 72040,
+  "url": "https://github.com/ComposioHQ/awesome-claude-skills",
+  "score": 6
+ },
+ {
+  "desc": "AI agent skill that researches any topic across Reddit, X, YouTube, HN, Polymarket, and the web - then synthesizes a grounded summary",
+  "full_name": "mvanhorn/last30days-skill",
+  "lang": "Python",
+  "stars": 57627,
+  "url": "https://github.com/mvanhorn/last30days-skill",
+  "score": 6
+ },
+ {
+  "desc": "A hand-picked collection of the finest of resources for the most awesome of agents, Claude Code, the undisputed champion of coding companions, from the unstoppable team at Anthropic PBC. A delectable showcase of top tier skills, ambidextrous agents, scintillating status lines, top notch developer tooling, and also we have plugins",
+  "full_name": "hesreallyhim/awesome-claude-code",
+  "lang": "Python",
+  "stars": 51875,
+  "url": "https://github.com/hesreallyhim/awesome-claude-code",
+  "score": 3
+ },
+ {
+  "desc": "The awesome collection of OpenClaw skills. 5,400+ skills filtered and categorized from the official OpenClaw Skills Registry.🦞",
+  "full_name": "VoltAgent/awesome-openclaw-skills",
+  "lang": "",
+  "stars": 51810,
+  "url": "https://github.com/VoltAgent/awesome-openclaw-skills",
+  "score": 5
+ },
+ {
+  "desc": "Open-source super AI assistant & Agent Harness. Plans tasks, runs tools and skills, self-evolves with memory and knowledge. Multi-model, multi-channel. Lightweight, extensible, one-line install. (formerly chatgpt-on-wechat)",
+  "full_name": "zhayujie/CowAgent",
+  "lang": "Python",
+  "stars": 46404,
+  "url": "https://github.com/zhayujie/CowAgent",
+  "score": 3
+ },
+ {
+  "desc": "World's first open-source, agentic video production system. 12 production pipelines, 100+ tools, 700+ agent skill and production-knowledge files. Turn your AI coding assistant into a full video production studio.",
+  "full_name": "calesthio/OpenMontage",
+  "lang": "Python",
+  "stars": 45989,
+  "url": "https://github.com/calesthio/OpenMontage",
+  "score": 4
+ },
+ {
+  "desc": "AAS Core is the local, agent-first control plane for complete catalog discovery, agent-owned selection, stack validation, and planning, backed by 2,005+ agentic skills. Includes CLI, local MCP, catalog, plugins, and Workbench.",
+  "full_name": "sickn33/agentic-awesome-skills",
+  "lang": "Python",
+  "stars": 44616,
+  "url": "https://github.com/sickn33/agentic-awesome-skills",
+  "score": 6
+ },
+ {
+  "desc": "Agent skills for Obsidian. Teach your agent to use Obsidian CLI and open formats including Markdown, Bases, JSON Canvas.",
+  "full_name": "kepano/obsidian-skills",
+  "lang": "",
+  "stars": 44391,
+  "url": "https://github.com/kepano/obsidian-skills",
+  "score": 6
+ },
+ {
+  "desc": "Marketing skills for Claude Code and AI agents. CRO, copywriting, SEO, analytics, and growth engineering.",
+  "full_name": "coreyhaines31/marketingskills",
+  "lang": "JavaScript",
+  "stars": 43479,
+  "url": "https://github.com/coreyhaines31/marketingskills",
+  "score": 6
+ },
+ {
+  "desc": "Academic Research Skills for Claude Code: research → write → review → revise → finalize",
+  "full_name": "Imbad0202/academic-research-skills",
+  "lang": "Python",
+  "stars": 41324,
+  "url": "https://github.com/Imbad0202/academic-research-skills",
+  "score": 6
+ },
+ {
+  "desc": "Community-contributed instructions, agents, skills, and configurations to help you make the most of GitHub Copilot.",
+  "full_name": "github/awesome-copilot",
+  "lang": "Python",
+  "stars": 37567,
+  "url": "https://github.com/github/awesome-copilot",
+  "score": 3
+ },
+ {
+  "desc": "符合nature论文学术表达和科研绘图的Skill",
+  "full_name": "Yuan1z0825/nature-skills",
+  "lang": "Python",
+  "stars": 34004,
+  "url": "https://github.com/Yuan1z0825/nature-skills",
+  "score": 5
+ },
+ {
+  "desc": "Turn any AI agent into an AI Scientist. The #1 Agent Skills library for science, used by 170,000+ scientists worldwide. 158 ready-to-use skills plus 100+ scientific databases covering biology, chemistry, medicine, and drug discovery. Compatible with Cursor, Claude Code, Codex, Pi, Antigravity, and the open Agent Skills standard.",
+  "full_name": "K-Dense-AI/scientific-agent-skills",
+  "lang": "Python",
+  "stars": 32943,
+  "url": "https://github.com/K-Dense-AI/scientific-agent-skills",
+  "score": 6
+ },
+ {
+  "desc": "你想蒸馏的下一个员工，何必是同事。蒸馏任何人的思维方式——心智模型、决策启发式、表达DNA。Distill how anyone thinks.",
+  "full_name": "alchaincyf/nuwa-skill",
+  "lang": "Python",
+  "stars": 30008,
+  "url": "https://github.com/alchaincyf/nuwa-skill",
+  "score": 2
+ },
+ {
+  "desc": "Vercel's official collection of agent skills",
+  "full_name": "vercel-labs/agent-skills",
+  "lang": "JavaScript",
+  "stars": 29848,
+  "url": "https://github.com/vercel-labs/agent-skills",
+  "score": 6
+ },
+ {
+  "desc": "A curated collection of 1000+ agent skills from official dev teams and the community, compatible with Claude Code, Codex, Gemini CLI, Cursor, and more.",
+  "full_name": "VoltAgent/awesome-agent-skills",
+  "lang": "",
+  "stars": 29802,
+  "url": "https://github.com/VoltAgent/awesome-agent-skills",
+  "score": 6
+ },
+ {
+  "desc": "The open agent skills tool - npx skills",
+  "full_name": "vercel-labs/skills",
+  "lang": "TypeScript",
+  "stars": 28298,
+  "url": "https://github.com/vercel-labs/skills",
+  "score": 6
+ },
+ {
+  "desc": "817 structured cybersecurity skills for AI agents · Mapped to 6 frameworks: MITRE ATT&CK, NIST CSF 2.0, MITRE ATLAS, D3FEND, NIST AI RMF & MITRE F3 (Fight Fraud) · agentskills.io standard · Works with Claude Code, GitHub Copilot, Codex CLI, Cursor, Gemini CLI & 20+ platforms · 29 security domains · Apache 2.0",
+  "full_name": "mukul975/Anthropic-Cybersecurity-Skills",
+  "lang": "Python",
+  "stars": 27448,
+  "url": "https://github.com/mukul975/Anthropic-Cybersecurity-Skills",
+  "score": 6
+ },
+ {
+  "desc": "Skills for Designers and Engineers.",
+  "full_name": "emilkowalski/skills",
+  "lang": "",
+  "stars": 26999,
+  "url": "https://github.com/emilkowalski/skills",
+  "score": 6
+ },
+ {
+  "desc": "Persistent file-based planning for AI coding agents and long-running tasks. Crash-proof markdown plans, session recovery after /clear and compaction, per-turn re-injection against context rot, deterministic completion gate. Manus-style. Claude Code, Codex, Cursor, Kiro, OpenCode and 60+ agents via the Agent Skills standard.",
+  "full_name": "OthmanAdi/planning-with-files",
+  "lang": "Shell",
+  "stars": 26045,
+  "url": "https://github.com/OthmanAdi/planning-with-files",
+  "score": 4
+ },
+ {
+  "desc": "PM Skills Marketplace: 100+ agentic skills, commands, and plugins — from discovery to strategy, execution, launch, and growth.",
+  "full_name": "phuryn/pm-skills",
+  "lang": "",
+  "stars": 24973,
+  "url": "https://github.com/phuryn/pm-skills",
+  "score": 6
+ },
+ {
+  "desc": "",
+  "full_name": "JimLiu/baoyu-skills",
+  "lang": "TypeScript",
+  "stars": 24710,
+  "url": "https://github.com/JimLiu/baoyu-skills",
+  "score": 2
+ },
+ {
+  "desc": "Skills Catalog for Codex",
+  "full_name": "openai/skills",
+  "lang": "Python",
+  "stars": 24625,
+  "url": "https://github.com/openai/skills",
+  "score": 5
+ },
+ {
+  "desc": "345 Claude Code skills & agent skills & plugins (30+ Agents, 70+ custom commands, 330+ skills, customizable references, scripts)for Claude Code, Codex, Gemini CLI, Cursor, and 8 more coding agents — engineering, marketing, product, compliance, C-level advisory, research, business operations, commercial & finance, and your daily productivity skills.",
+  "full_name": "alirezarezvani/claude-skills",
+  "lang": "Python",
+  "stars": 24097,
+  "url": "https://github.com/alirezarezvani/claude-skills",
+  "score": 6
+ },
+ {
+  "desc": "Specification and documentation for Agent Skills",
+  "full_name": "agentskills/agentskills",
+  "lang": "Python",
+  "stars": 24001,
+  "url": "https://github.com/agentskills/agentskills",
+  "score": 6
+ },
+ {
+  "desc": "Turn Claude Code into a full game dev studio — 49 AI agents, 72 workflow skills, and a complete coordination system mirroring real studio hierarchy.",
+  "full_name": "Donchitos/Claude-Code-Game-Studios",
+  "lang": "Shell",
+  "stars": 23696,
+  "url": "https://github.com/Donchitos/Claude-Code-Game-Studios",
+  "score": 3
+ },
+ {
+  "desc": "AI-agent Skill for generating polished HTML slide decks: editorial magazine and Swiss layouts, image prompts, social covers, and a WebGL/low-power presentation runtime.",
+  "full_name": "op7418/guizang-ppt-skill",
+  "lang": "HTML",
+  "stars": 23482,
+  "url": "https://github.com/op7418/guizang-ppt-skill",
+  "score": 6
+ },
+ {
+  "desc": "Huashu Design · HTML-native design skill for Claude Code · Claude Code 里 HTML 原生的设计 skill · 高保真原型 / 幻灯片 / 动画 + 20 设计哲学 + 5 维评审 + MP4 导出 · Agent-agnostic",
+  "full_name": "alchaincyf/huashu-design",
+  "lang": "HTML",
+  "stars": 22641,
+  "url": "https://github.com/alchaincyf/huashu-design",
+  "score": 4
+ },
+ {
+  "desc": "Anti-AI-slop design skill for Claude Code, Cursor, and Codex.",
+  "full_name": "Nutlope/hallmark",
+  "lang": "CSS",
+  "stars": 22620,
+  "url": "https://github.com/Nutlope/hallmark",
+  "score": 4
+ },
+ {
+  "desc": "将冰冷的离别化为温暖的 Skill，欢迎加入数字生命1.0！Transforming cold farewells into warm skills? It's giving rebirth era. Welcome to Digital Life 1.0. 🫶",
+  "full_name": "titanwings/colleague-skill",
+  "lang": "Python",
+  "stars": 20760,
+  "url": "https://github.com/titanwings/colleague-skill",
+  "score": 5
+ },
+ {
+  "desc": "Reverse Engineering / Authorized Penetration Testing / Security Research Skill Router Pack AI-powered routing + On-demand toolchain bootstrapping + Self-evolving knowledge base  Supports Claude Code, Kiro, Cursor, Cline, and other AI coding clients 逆向/渗透/安全技能路由包 - AI 自动路由 + 按需自举工具链 + 自动进化经验库 | 支持 Claude Code / Kiro / Cursor / Cline 等代码 AI 客户端",
+  "full_name": "zhaoxuya520/reverse-skill",
+  "lang": "PowerShell",
+  "stars": 20670,
+  "url": "https://github.com/zhaoxuya520/reverse-skill",
+  "score": 5
+ },
+ {
+  "desc": "Create polished demo videos without editing skills. Mac/Windows/Linux",
+  "full_name": "webadderallorg/Recordly",
+  "lang": "TypeScript",
+  "stars": 20563,
+  "url": "https://github.com/webadderallorg/Recordly",
+  "score": 3
+ },
+ {
+  "desc": "数字生命卡兹克开源的 AI Skills 合集 | Agent Skills: leader（帮你定义目标）, neat-freak 洁癖, hv-analysis, khazix-writer & more — Claude Code, Codex & 40+ agents",
+  "full_name": "KKKKhazix/khazix-skills",
+  "lang": "Python",
+  "stars": 19365,
+  "url": "https://github.com/KKKKhazix/khazix-skills",
+  "score": 6
+ },
+ {
+  "desc": "你是一个曾经被寄予厚望的 P8 级工程师。Anthropic 当初给你定级的时候，对你的期望是很高的。  一个agent使用的高能动性的skill。  Your AI has been placed on a PIP. 30 days to show improvement.",
+  "full_name": "tanweai/pua",
+  "lang": "TypeScript",
+  "stars": 19289,
+  "url": "https://github.com/tanweai/pua",
+  "score": 3
+ },
+ {
+  "desc": "Unofficial Python API and agentic skill for Google Gemini Notebook. Full programmatic access to NotebookLM's features—including capabilities the web UI doesn't expose—via Python, CLI, and AI agents like Claude Code, Codex, and OpenClaw.",
+  "full_name": "teng-lin/notebooklm-py",
+  "lang": "Python",
+  "stars": 18542,
+  "url": "https://github.com/teng-lin/notebooklm-py",
+  "score": 4
+ },
+ {
+  "desc": "Turn any technical book PDF into a Claude Code skill — ready to study, reference, and use while you work.",
+  "full_name": "virgiliojr94/book-to-skill",
+  "lang": "Python",
+  "stars": 18450,
+  "url": "https://github.com/virgiliojr94/book-to-skill",
+  "score": 5
+ },
+ {
+  "desc": "A skill to stop your coding agent from burying the answer. ADHD-friendly output.",
+  "full_name": "ayghri/i-have-adhd",
+  "lang": "Python",
+  "stars": 18234,
+  "url": "https://github.com/ayghri/i-have-adhd",
+  "score": 4
+ },
+ {
+  "desc": "A comprehensive collection of Agent Skills for context engineering, multi-agent architectures, and production agent systems. Use when building, optimizing, or debugging agent systems that require effective context management.",
+  "full_name": "muratcankoylan/Agent-Skills-for-Context-Engineering",
+  "lang": "Python",
+  "stars": 17634,
+  "url": "https://github.com/muratcankoylan/Agent-Skills-for-Context-Engineering",
+  "score": 6
+ },
+ {
+  "desc": "Agent Skills for Google products and technologies",
+  "full_name": "google/skills",
+  "lang": "Python",
+  "stars": 16356,
+  "url": "https://github.com/google/skills",
+  "score": 6
+ },
+ {
+  "desc": "The official Lark/飞书 CLI tool, maintained by the larksuite team — built for humans and AI Agents. Covers core business domains including Messenger, Docs, Base, Sheets, Calendar, Mail, Tasks, Meetings, and more, with 200+ commands and 20+ AI Agent Skills.",
+  "full_name": "larksuite/cli",
+  "lang": "Go",
+  "stars": 16261,
+  "url": "https://github.com/larksuite/cli",
+  "score": 4
+ },
+ {
+  "desc": "SkillOpt is a text-space optimizer that trains reusable natural-language skills for frozen LLM agents through trajectory-driven edits, validation-gated updates, and deployable best_skill.md artifacts.",
+  "full_name": "microsoft/SkillOpt",
+  "lang": "Python",
+  "stars": 15760,
+  "url": "https://github.com/microsoft/SkillOpt",
+  "score": 6
+ },
+ {
+  "desc": "A curated list of practical Codex skills for automating workflows across the Codex CLI and API.",
+  "full_name": "composio-community/awesome-codex-skills",
+  "lang": "Python",
+  "stars": 15691,
+  "url": "https://github.com/composio-community/awesome-codex-skills",
+  "score": 6
+ },
+ {
+  "desc": "A skill file for removing AI tells from prose",
+  "full_name": "hardikpandya/stop-slop",
+  "lang": "",
+  "stars": 15341,
+  "url": "https://github.com/hardikpandya/stop-slop",
+  "score": 3
+ },
+ {
+  "desc": "Convert documentation websites, GitHub repositories, and PDFs into Claude AI skills with automatic conflict detection",
+  "full_name": "yusufkaraaslan/Skill_Seekers",
+  "lang": "Python",
+  "stars": 14724,
+  "url": "https://github.com/yusufkaraaslan/Skill_Seekers",
+  "score": 5
+ },
+ {
+  "desc": "A curated list of awesome Claude Skills, resources, and tools for customizing Claude AI workflows — particularly Claude Code",
+  "full_name": "travisvn/awesome-claude-skills",
+  "lang": "",
+  "stars": 14560,
+  "url": "https://github.com/travisvn/awesome-claude-skills",
+  "score": 6
+ },
+ {
+  "desc": "Security scanner for AI agent skills. Detect vulnerabilities, malicious patterns, security risks, prompt injection, data exfiltration, and supply-chain risks in Claude Code, Codex, and MCP skills before you install them.",
+  "full_name": "NVIDIA/SkillSpector",
+  "lang": "Python",
+  "stars": 14354,
+  "url": "https://github.com/NVIDIA/SkillSpector",
+  "score": 6
+ },
+ {
+  "desc": "Universal SEO skill for Claude Code. 25 sub-skills + 18 sub-agents covering technical SEO, E-E-A-T, schema, GEO/AEO, backlinks, local SEO, maps intelligence, semantic clustering, e-commerce SEO, international SEO, Google APIs, and PDF/Excel reporting. Optional DataForSEO, Firecrawl, and Banana extensions.",
+  "full_name": "AgriciDaniel/claude-seo",
+  "lang": "Python",
+  "stars": 13650,
+  "url": "https://github.com/AgriciDaniel/claude-seo",
+  "score": 4
+ },
+ {
+  "desc": "",
+  "full_name": "MiniMax-AI/skills",
+  "lang": "C#",
+  "stars": 13275,
+  "url": "https://github.com/MiniMax-AI/skills",
+  "score": 2
+ },
+ {
+  "desc": "Official AI skills for GSAP. These skills teach AI coding agents how to correctly use GSAP (GreenSock Animation Platform), including best practices, common animation patterns, and plugin usage.",
+  "full_name": "greensock/gsap-skills",
+  "lang": "",
+  "stars": 13214,
+  "url": "https://github.com/greensock/gsap-skills",
+  "score": 6
+ },
+ {
+  "desc": "A library of agent skills for CAD, CAE and CAM",
+  "full_name": "earthtojake/text-to-cad",
+  "lang": "JavaScript",
+  "stars": 13062,
+  "url": "https://github.com/earthtojake/text-to-cad",
+  "score": 4
+ },
+ {
+  "desc": "Comprehensive open-source library of AI research and engineering skills for any AI model. Package the skills and your claude code/codex/gemini agent will be an AI research agent with full horsepower. Maintained by Orchestra Research.",
+  "full_name": "Orchestra-Research/AI-Research-SKILLs",
+  "lang": "TeX",
+  "stars": 11502,
+  "url": "https://github.com/Orchestra-Research/AI-Research-SKILLs",
+  "score": 6
+ },
+ {
+  "desc": "66 Specialized Skills for Full-Stack Developers. Transform Claude Code into your expert pair programmer.",
+  "full_name": "Jeffallan/claude-skills",
+  "lang": "Python",
+  "stars": 10916,
+  "url": "https://github.com/Jeffallan/claude-skills",
+  "score": 6
+ },
+ {
+  "desc": "Give your agents the power of the Hugging Face ecosystem",
+  "full_name": "huggingface/skills",
+  "lang": "Python",
+  "stars": 10908,
+  "url": "https://github.com/huggingface/skills",
+  "score": 2
+ },
+ {
+  "desc": "Universal skills loader for AI coding agents - npm i -g openskills",
+  "full_name": "numman-ali/openskills",
+  "lang": "TypeScript",
+  "stars": 10666,
+  "url": "https://github.com/numman-ali/openskills",
+  "score": 5
+ },
+ {
+  "desc": "ConardLi's open-source Skills collection, featuring web design, knowledge retrieval, image generation, and more.",
+  "full_name": "ConardLi/garden-skills",
+  "lang": "CSS",
+  "stars": 10151,
+  "url": "https://github.com/ConardLi/garden-skills",
+  "score": 6
+ },
+ {
+  "desc": "张雪峰.skill — 张雪峰的认知操作系统。高考志愿/考研/职业规划的实战思维框架。由女娲.skill生成。",
+  "full_name": "alchaincyf/zhangxuefeng-skill",
+  "lang": "",
+  "stars": 10094,
+  "url": "https://github.com/alchaincyf/zhangxuefeng-skill",
+  "score": 5
+ },
+ {
+  "desc": "A curated list of Claude Skills.",
+  "full_name": "BehiSecc/awesome-claude-skills",
+  "lang": "",
+  "stars": 9914,
+  "url": "https://github.com/BehiSecc/awesome-claude-skills",
+  "score": 6
+ },
+ {
+  "desc": "Prompt as Code | GPT-Image2 工业级提示词引擎与模板库，470+ 个案例逆向工程，20+ 套工业级模板，并提炼出Skills，持续更新中",
+  "full_name": "freestylefly/awesome-gpt-image-2",
+  "lang": "JavaScript",
+  "stars": 9879,
+  "url": "https://github.com/freestylefly/awesome-gpt-image-2",
+  "score": 3
+ },
+ {
+  "desc": "Based on The Minimalist Entrepreneur by Sahil Lavingia",
+  "full_name": "slavingia/skills",
+  "lang": "",
+  "stars": 9771,
+  "url": "https://github.com/slavingia/skills",
+  "score": 2
+ },
+ {
+  "desc": "dontbesilent 的商业诊断 Skills",
+  "full_name": "dontbesilent2025/dbskill",
+  "lang": "JavaScript",
+  "stars": 9319,
+  "url": "https://github.com/dontbesilent2025/dbskill",
+  "score": 5
+ },
+ {
+  "desc": "Skill + Plugin Registry for OpenClaw",
+  "full_name": "openclaw/clawhub",
+  "lang": "TypeScript",
+  "stars": 9278,
+  "url": "https://github.com/openclaw/clawhub",
+  "score": 3
+ },
+ {
+  "desc": "给 Claude Code 装上完整联网能力的 skill：三层通道调度 + 浏览器 CDP + 并行分治",
+  "full_name": "eze-is/web-access",
+  "lang": "JavaScript",
+  "stars": 8590,
+  "url": "https://github.com/eze-is/web-access",
+  "score": 3
+ },
+ {
+  "desc": "✨ The agentic HTML editor — your local AI agent writes the HTML, you ship it. 🚀 75 Skills × 9 Surfaces (magazine · deck · poster · XHS / tweet · prototype · data report · Hyperframes) 🛡️ Sandboxed preview · 📤 1-click to WeChat / X / Zhihu / HTML / PNG 🔑 Zero API key — Claude Code / Cursor / Codex / Gemini / Copilot / OpenCode / Qwen / Aider.",
+  "full_name": "nexu-io/html-anything",
+  "lang": "HTML",
+  "stars": 8138,
+  "url": "https://github.com/nexu-io/html-anything",
+  "score": 3
+ },
+ {
+  "desc": "Codex-native Academic Research Skills suite for human-in-the-loop academic research workflows",
+  "full_name": "Imbad0202/academic-research-skills-codex",
+  "lang": "Python",
+  "stars": 8056,
+  "url": "https://github.com/Imbad0202/academic-research-skills-codex",
+  "score": 5
+ },
+ {
+  "desc": "A library of Agent Skills designed to work with the Stitch MCP server. Each skill follows the Agent Skills open standard, for compatibility with coding agents such as Antigravity, Gemini CLI, Claude Code, Cursor.",
+  "full_name": "google-labs-code/stitch-skills",
+  "lang": "TypeScript",
+  "stars": 7955,
+  "url": "https://github.com/google-labs-code/stitch-skills",
+  "score": 6
+ },
+ {
+  "desc": "Claude-first paid-media operations skill for Claude Code across 12 ad platforms (Google, Meta, YouTube, LinkedIn, TikTok, Microsoft, Apple, Amazon, Reddit, Pinterest, Snapchat, X): source-grounded audits, deterministic scoring, versioned JSON reports, and capability-gated account changes.",
+  "full_name": "AgriciDaniel/claude-ads",
+  "lang": "Python",
+  "stars": 7886,
+  "url": "https://github.com/AgriciDaniel/claude-ads",
+  "score": 4
+ },
+ {
+  "desc": "HTML PPT Studio — AgentSkill with 24 themes, 31 layouts, 20+ animations for building professional HTML presentations",
+  "full_name": "lewislulu/html-ppt-skill",
+  "lang": "HTML",
+  "stars": 7719,
+  "url": "https://github.com/lewislulu/html-ppt-skill",
+  "score": 5
+ },
+ {
+  "desc": "Use this skill to enable Claude Code to communicate directly with your Google NotebookLM notebooks. Query your uploaded documents and get source-grounded, citation-backed answers from Gemini. Features browser automation, library management, persistent authentication, and answers exclusively from your own knowledge base.",
+  "full_name": "PleasePrompto/notebooklm-skill",
+  "lang": "Python",
+  "stars": 7587,
+  "url": "https://github.com/PleasePrompto/notebooklm-skill",
+  "score": 6
+ },
+ {
+  "desc": "🦸 AI 编程超能力 · 中文增强版 — superpowers（116k+ ⭐）完整汉化 + 6 个中国原创 skills，让 Claude Code / Copilot CLI / Hermes Agent / Cursor / Windsurf / Kiro / Gemini CLI 等 16 款 AI 编程工具真正会干活",
+  "full_name": "jnMetaCode/superpowers-zh",
+  "lang": "JavaScript",
+  "stars": 7545,
+  "url": "https://github.com/jnMetaCode/superpowers-zh",
+  "score": 3
+ },
+ {
+  "desc": "Generate draw.io diagrams from natural language — 11 presets (UML, SysML/MBSE, BPMN, network, C4…), 36 tools: codebase/CI/infra-to-diagram, image→editable diagram, mind maps, build-up animation, exec-view compression, click-through runbooks, PR diff bot. Vision self-check, 10,000+ shapes. Exports PNG/SVG/PDF/JPG.",
+  "full_name": "Agents365-ai/drawio-skill",
+  "lang": "Python",
+  "stars": 7295,
+  "url": "https://github.com/Agents365-ai/drawio-skill",
+  "score": 2
+ },
+ {
+  "desc": "Skills for Design Engineers",
+  "full_name": "ibelick/ui-skills",
+  "lang": "TypeScript",
+  "stars": 7060,
+  "url": "https://github.com/ibelick/ui-skills",
+  "score": 6
+ },
+ {
+  "desc": "한국인을 위한 스킬 모음집 - 에이전트를 한국인으로",
+  "full_name": "NomaDamas/k-skill",
+  "lang": "JavaScript",
+  "stars": 7040,
+  "url": "https://github.com/NomaDamas/k-skill",
+  "score": 2
+ },
+ {
+  "desc": "",
+  "full_name": "lijigang/ljg-skills",
+  "lang": "TypeScript",
+  "stars": 6750,
+  "url": "https://github.com/lijigang/ljg-skills",
+  "score": 2
+ },
+ {
+  "desc": "Claude Code skill to support Android app's reverse engineering",
+  "full_name": "SimoneAvogadro/android-reverse-engineering-skill",
+  "lang": "Shell",
+  "stars": 6717,
+  "url": "https://github.com/SimoneAvogadro/android-reverse-engineering-skill",
+  "score": 6
+ },
+ {
+  "desc": "",
+  "full_name": "android/skills",
+  "lang": "Python",
+  "stars": 6621,
+  "url": "https://github.com/android/skills",
+  "score": 2
+ },
+ {
+  "desc": "把书、长视频、播客等高价值内容蒸馏成可执行的 Agent Skills",
+  "full_name": "kangarooking/cangjie-skill",
+  "lang": "Python",
+  "stars": 6618,
+  "url": "https://github.com/kangarooking/cangjie-skill",
+  "score": 6
+ },
+ {
+  "desc": "Trail of Bits Claude Code skills for security research, vulnerability detection, and audit workflows",
+  "full_name": "trailofbits/skills",
+  "lang": "Python",
+  "stars": 6487,
+  "url": "https://github.com/trailofbits/skills",
+  "score": 6
+ },
+ {
+  "desc": "Product Management skills framework built on battle-tested methods for Claude Code, Cowork, Codex, and AI agents.",
+  "full_name": "deanpeters/Product-Manager-Skills",
+  "lang": "Shell",
+  "stars": 6329,
+  "url": "https://github.com/deanpeters/Product-Manager-Skills",
+  "score": 5
+ },
+ {
+  "desc": "🪧 Claude Code / Codex skill — generate Xiaohongshu carousels & WeChat 21:9+1:1 cover pairs. Editorial × Swiss visual systems, 28 layouts, 10 themes, single-file HTML → PNG. 小红书图文 + 公众号封面对",
+  "full_name": "op7418/guizang-social-card-skill",
+  "lang": "HTML",
+  "stars": 6082,
+  "url": "https://github.com/op7418/guizang-social-card-skill",
+  "score": 6
+ },
+ {
+  "desc": "冰冷的钱就这样流进我温暖的口袋-游资（UZI）Skills — 让我们欢迎，股海贼王！66位投资大佬帮你看盘 · 22维数据 × 180条量化规则 × 17种机构分析方法 · A股/港股/美股 ",
+  "full_name": "wbh604/UZI-Skill",
+  "lang": "Python",
+  "stars": 6079,
+  "url": "https://github.com/wbh604/UZI-Skill",
+  "score": 5
+ },
+ {
+  "desc": "Tutorials, Guides and Agent Skills Directories",
+  "full_name": "heilcheng/awesome-agent-skills",
+  "lang": "TypeScript",
+  "stars": 6070,
+  "url": "https://github.com/heilcheng/awesome-agent-skills",
+  "score": 6
+ },
+ {
+  "desc": "n8n skillset for Claude Code to build flawless n8n workflows",
+  "full_name": "czlonkowski/n8n-skills",
+  "lang": "Shell",
+  "stars": 5999,
+  "url": "https://github.com/czlonkowski/n8n-skills",
+  "score": 5
+ },
+ {
+  "desc": "把前任蒸馏成 AI Skill，用ta的方式跟你说话。",
+  "full_name": "therealXiaomanChu/ex-skill",
+  "lang": "Python",
+  "stars": 5966,
+  "url": "https://github.com/therealXiaomanChu/ex-skill",
+  "score": 5
+ },
+ {
+  "desc": "Skill package for ML/CV/NLP paper writing, curated and adapted from Prof. Peng Sida's open notes for Codex, Claude Code, and Gemini.",
+  "full_name": "Master-cai/Research-Paper-Writing-Skills",
+  "lang": "",
+  "stars": 5882,
+  "url": "https://github.com/Master-cai/Research-Paper-Writing-Skills",
+  "score": 5
+ },
+ {
+  "desc": "Claude Autoresearch Skill — Autonomous goal-directed iteration for Claude Code. Inspired by Karpathy's autoresearch. Modify → Verify → Keep/Discard → Repeat forever.",
+  "full_name": "uditgoenka/autoresearch",
+  "lang": "Shell",
+  "stars": 5798,
+  "url": "https://github.com/uditgoenka/autoresearch",
+  "score": 3
+ },
+ {
+  "desc": "Programmatic access to Gemini Notebook - via command-line interface (CLI), Model Context Protocol (MCP) server, and AI agent skills.",
+  "full_name": "jacob-bd/gemini-notebook-mcp-cli",
+  "lang": "Python",
+  "stars": 5776,
+  "url": "https://github.com/jacob-bd/gemini-notebook-mcp-cli",
+  "score": 4
+ },
+ {
+  "desc": "Anthony Fu's curated collection of agent skills.",
+  "full_name": "antfu/skills",
+  "lang": "TypeScript",
+  "stars": 5733,
+  "url": "https://github.com/antfu/skills",
+  "score": 6
+ },
+ {
+  "desc": "Claude Skill: Multi-source content processor for NotebookLM. Supports WeChat articles, web pages, YouTube, PDF, Markdown, search queries → Podcast/PPT/MindMap/Quiz etc.",
+  "full_name": "joeseesun/qiaomu-anything-to-notebooklm",
+  "lang": "Python",
+  "stars": 5714,
+  "url": "https://github.com/joeseesun/qiaomu-anything-to-notebooklm",
+  "score": 4
+ },
+ {
+  "desc": "The most comprehensive Claude Code guide: agentic workflows, hooks, skills, MCP servers, quizzes, and production-ready templates. 430K+ lines.",
+  "full_name": "FlorianBruniaux/claude-code-ultimate-guide",
+  "lang": "Python",
+  "stars": 5683,
+  "url": "https://github.com/FlorianBruniaux/claude-code-ultimate-guide",
+  "score": 3
+ },
+ {
+  "desc": "The CLI and skills that turn any coding assistant into an expert at creating, evaluating, and deploying AI agents on Google Cloud.",
+  "full_name": "google/agents-cli",
+  "lang": "Python",
+  "stars": 5508,
+  "url": "https://github.com/google/agents-cli",
+  "score": 4
+ },
+ {
+  "desc": "达尔文.skill —— 一个让你的Skill无限进化的系统：评估→改进→测试→保留或回滚 | Autoresearch-inspired autonomous skill optimization for Claude Code. Evaluate, improve, test, keep or revert.",
+  "full_name": "alchaincyf/darwin-skill",
+  "lang": "HTML",
+  "stars": 5399,
+  "url": "https://github.com/alchaincyf/darwin-skill",
+  "score": 5
+ },
+ {
+  "desc": "A Claude Code skill that turns any codebase into a beautiful, interactive single-page HTML course for non-technical vibe coders.",
+  "full_name": "zarazhangrui/codebase-to-course",
+  "lang": "CSS",
+  "stars": 5349,
+  "url": "https://github.com/zarazhangrui/codebase-to-course",
+  "score": 4
+ },
+ {
+  "desc": "Browser automation CLI built for AI agents. Break through anti-bot walls, hand off to humans across platforms when stuck. Parallel multi-task execution, independent multi-session operation, isolated multi-account browsing.",
+  "full_name": "browser-act/skills",
+  "lang": "Python",
+  "stars": 5266,
+  "url": "https://github.com/browser-act/skills",
+  "score": 2
+ },
+ {
+  "desc": "Unified real-time search engine skill for AI agents. Supports general web search, vertical domain search, parallel batch search, and full-page content extraction.",
+  "full_name": "anysearch-ai/anysearch-skill",
+  "lang": "Python",
+  "stars": 5231,
+  "url": "https://github.com/anysearch-ai/anysearch-skill",
+  "score": 6
+ },
+ {
+  "desc": "Independent directory of useful skills, plugins, memory providers, tools, surfaces, and guides for Nous Research's open-source Hermes Agent.",
+  "full_name": "0xNyk/awesome-hermes-agent",
+  "lang": "",
+  "stars": 5231,
+  "url": "https://github.com/0xNyk/awesome-hermes-agent",
+  "score": 3
+ },
+ {
+  "desc": "网文/小说写作 skill 包，覆盖长篇与短篇网络小说的扫榜、拆文、写作、去AI味、封面图全流程 | An all-in-one skill pack for long- and short-form web fiction.",
+  "full_name": "worldwonderer/oh-story-claudecode",
+  "lang": "JavaScript",
+  "stars": 5222,
+  "url": "https://github.com/worldwonderer/oh-story-claudecode",
+  "score": 3
+ },
+ {
+  "desc": "将博导十年科研经验炼化为可直接调用的 AI 技能。从 Idea 构思到论文投稿，你的 AI 科研副导师。",
+  "full_name": "HKUSTDial/Supervisor-Skills",
+  "lang": "Python",
+  "stars": 5198,
+  "url": "https://github.com/HKUSTDial/Supervisor-Skills",
+  "score": 2
+ },
+ {
+  "desc": "Repository for skills to assist AI coding agents with .NET and C#",
+  "full_name": "dotnet/skills",
+  "lang": "C#",
+  "stars": 5043,
+  "url": "https://github.com/dotnet/skills",
+  "score": 6
+ },
+ {
+  "desc": "The secure, validated skill registry for professional AI coding agents. Extend Antigravity, Claude Code, Cursor, Copilot and more with absolute confidence.",
+  "full_name": "tech-leads-club/agent-skills",
+  "lang": "TypeScript",
+  "stars": 5000,
+  "url": "https://github.com/tech-leads-club/agent-skills",
+  "score": 5
+ },
+ {
+  "desc": "A modern, minimalist portfolio template built with Astro and Tailwind CSS. Perfect for developers looking to showcase their skills, experience, and projects in a clean, professional way.",
+  "full_name": "RyanFitzgerald/devportfolio",
+  "lang": "Astro",
+  "stars": 4948,
+  "url": "https://github.com/RyanFitzgerald/devportfolio",
+  "score": 3
+ },
+ {
+  "desc": "收录最全、更新最快的技能Skills 商店，涵盖文档处理、内容创作、编程开发、机器学习、自动化工作流等多个领域的 72 个精选技能包。所有技能已打包完成，可直接安装使用！ 该商店中自动抓取了 Github 上的所有的 Skills 项目，并按照分类、更新时间、Star 数量等标签进行整理。",
+  "full_name": "anbeime/skill",
+  "lang": "Python",
+  "stars": 4942,
+  "url": "https://github.com/anbeime/skill",
+  "score": 5
+ },
+ {
+  "desc": "Agent Skills 终极指南：快速入门、资源推荐、精选技能与实用工具 ｜The Ultimate Guide to Agent Skills: QuickStart, Resources, Features&Toolkit",
+  "full_name": "libukai/awesome-agent-skills",
+  "lang": "",
+  "stars": 4937,
+  "url": "https://github.com/libukai/awesome-agent-skills",
+  "score": 6
+ },
+ {
+  "desc": "Modular SenseNova skills for building AI-powered office assistants and productivity workflows",
+  "full_name": "OpenSenseNova/SenseNova-Skills",
+  "lang": "JavaScript",
+  "stars": 4928,
+  "url": "https://github.com/OpenSenseNova/SenseNova-Skills",
+  "score": 6
+ },
+ {
+  "desc": "An AI-agent skill that generates browser-editable presentations from multiple visual themes, exportable to HTML, PDF, and PPTX.",
+  "full_name": "chuspeeism/dashi-ppt-skill",
+  "lang": "JavaScript",
+  "stars": 4869,
+  "url": "https://github.com/chuspeeism/dashi-ppt-skill",
+  "score": 6
+ },
+ {
+  "desc": "Self-hosted, open-source agent skill registry for enterprises. Publish & version skill packages, govern with RBAC and audit logs, deploy   on-premise with Docker or Kubernetes.",
+  "full_name": "iflytek/skillhub",
+  "lang": "Java",
+  "stars": 4854,
+  "url": "https://github.com/iflytek/skillhub",
+  "score": 6
+ },
+ {
+  "desc": "Give Cursor Agent an AI Team and Advanced Skills",
+  "full_name": "eastlondoner/vibe-tools",
+  "lang": "TypeScript",
+  "stars": 4824,
+  "url": "https://github.com/eastlondoner/vibe-tools",
+  "score": 3
+ },
+ {
+  "desc": "中国专利.skill：从项目文档到交底书编写（挖点·查新·脱敏成文）+ 专利通俗解读（叙事·图谱·Obsidian 私库）。",
+  "full_name": "handsomestWei/patent-disclosure-skill",
+  "lang": "Python",
+  "stars": 4808,
+  "url": "https://github.com/handsomestWei/patent-disclosure-skill",
+  "score": 5
+ }
+]

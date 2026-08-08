@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKILLS·INDEX — Agent Skills 仓库排行榜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0d;
+    --panel:#0f0f14;
+    --panel2:#14141b;
+    --line:rgba(255,255,255,.07);
+    --line2:rgba(255,255,255,.14);
+    --ink:#ececec;
+    --dim:#8b8b96;
+    --dim2:#5c5c66;
+    --acid:#d7ff3e;
+    --amber:#ffb454;
+    --cyan:#6ee7ff;
+    --red:#ff6b6b;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --disp:'Unbounded','JetBrains Mono',sans-serif;
+    --radius:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--mono);
+    font-size:14px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  /* 氛围背景：网格 + 微光 + 噪点 */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-2;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(215,255,62,.07), transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, rgba(110,231,255,.05), transparent 55%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image:radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 100%);
+    -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 100%);
+  }
+  .grain{
+    position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  }
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+
+  /* ============ 顶部导航 ============ */
+  header{
+    position:sticky;top:0;z-index:50;
+    backdrop-filter:blur(14px);
+    background:rgba(10,10,13,.72);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex;align-items:center;gap:20px;height:58px}
+  .logo{
+    font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.06em;
+    display:flex;align-items:center;gap:9px;white-space:nowrap;
+  }
+  .logo .mark{
+    width:26px;height:26px;display:grid;place-items:center;
+    border:1.5px solid var(--acid);color:var(--acid);border-radius:7px;
+    font-family:var(--mono);font-size:13px;
+    box-shadow:0 0 18px rgba(215,255,62,.25), inset 0 0 10px rgba(215,255,62,.08);
+  }
+  .logo b{color:var(--acid)}
+  .nav .spacer{flex:1}
+  .nav-links{display:flex;gap:4px;align-items:center}
+  .nav-links a{
+    color:var(--dim);text-decoration:none;font-size:12.5px;padding:7px 13px;border-radius:8px;
+    transition:.18s;border:1px solid transparent;
+  }
+  .nav-links a:hover{color:var(--ink);background:var(--panel2);border-color:var(--line)}
+  .nav-links a.active{color:var(--acid);border-color:rgba(215,255,62,.35);background:rgba(215,255,62,.06)}
+  @media(max-width:720px){.nav-links a:not(.active){display:none}}
+
+  /* ============ HERO ============ */
+  .hero{padding:84px 0 56px;position:relative}
+  .kicker{
+    display:inline-flex;align-items:center;gap:9px;
+    font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--acid);
+    border:1px solid rgba(215,255,62,.3);padding:6px 13px;border-radius:99px;
+    background:rgba(215,255,62,.05);margin-bottom:26px;
+  }
+  .kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--acid);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .hero h1{
+    font-family:var(--disp);font-weight:900;font-size:clamp(40px,7.4vw,88px);
+    line-height:.98;letter-spacing:-.01em;margin-bottom:22px;
+    text-transform:uppercase;
+  }
+  .hero h1 .outline{
+    color:transparent;
+    -webkit-text-stroke:1.5px var(--ink);
+  }
+  .hero h1 .acid{color:var(--acid);text-shadow:0 0 42px rgba(215,255,62,.4)}
+  .hero .sub{
+    color:var(--dim);font-size:15px;max-width:560px;margin-bottom:34px;
+  }
+  .hero .sub b{color:var(--ink);font-weight:500}
+  .cmd{
+    display:inline-flex;align-items:center;gap:14px;
+    background:var(--panel);border:1px solid var(--line2);border-radius:12px;
+    padding:13px 18px;font-size:13.5px;color:var(--ink);
+    box-shadow:0 8px 30px rgba(0,0,0,.4);
+  }
+  .cmd .prompt{color:var(--dim2)}
+  .cmd code{color:var(--acid)}
+  .cmd .copy{
+    margin-left:6px;cursor:pointer;color:var(--dim);font-size:11px;letter-spacing:.1em;
+    border:1px solid var(--line2);padding:4px 9px;border-radius:6px;transition:.18s;
+  }
+  .cmd .copy:hover{color:var(--acid);border-color:rgba(215,255,62,.4)}
+  .stat-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:44px}
+  .stat{
+    flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden;
+  }
+  .stat::after{
+    content:"";position:absolute;inset:auto 0 0 0;height:2px;
+    background:linear-gradient(90deg,var(--acid),transparent 70%);opacity:.6;
+  }
+  .stat .num{
+    font-family:var(--disp);font-weight:700;font-size:clamp(22px,3vw,30px);
+    color:var(--ink);letter-spacing:.01em;
+  }
+  .stat .num.acid{color:var(--acid)}
+  .stat .lbl{color:var(--dim);font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-top:5px}
+
+  /* ============ 工具栏 ============ */
+  .toolbar{
+    position:sticky;top:58px;z-index:40;
+    background:rgba(10,10,13,.78);backdrop-filter:blur(14px);
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 18px;margin-bottom:22px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;
+  }
+  .search{position:relative;flex:1;min-width:220px}
+  .search input{
+    width:100%;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;
+    padding:11px 14px 11px 40px;color:var(--ink);font-family:var(--mono);font-size:13.5px;
+    outline:none;transition:.18s;
+  }
+  .search input:focus{border-color:rgba(215,255,62,.5);box-shadow:0 0 0 3px rgba(215,255,62,.08)}
+  .search input::placeholder{color:var(--dim2)}
+  .search .icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--dim2);font-size:13px}
+  .filters{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .chip{
+    cursor:pointer;user-select:none;font-size:12px;padding:7px 13px;border-radius:99px;
+    border:1px solid var(--line2);color:var(--dim);background:transparent;transition:.16s;
+  }
+  .chip:hover{color:var(--ink);border-color:var(--dim)}
+  .chip.on{color:#0a0a0d;background:var(--acid);border-color:var(--acid);font-weight:700}
+  .chip .cnt{opacity:.55;margin-left:4px;font-size:11px}
+  select{
+    background:var(--panel2);border:1px solid var(--line2);border-radius:10px;
+    color:var(--ink);font-family:var(--mono);font-size:12.5px;padding:9px 12px;outline:none;cursor:pointer;
+  }
+  select:focus{border-color:rgba(215,255,62,.5)}
+
+  /* ============ 分布可视化 ============ */
+  .dist-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+  @media(max-width:860px){.dist-wrap{grid-template-columns:1fr}}
+  .dist{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;
+  }
+  .dist h3{
+    font-family:var(--disp);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--dim);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .dist h3 .hl{color:var(--acid)}
+  .bar-row{display:grid;grid-template-columns:86px 1fr 44px;gap:10px;align-items:center;margin-bottom:9px}
+  .bar-row .k{font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar-row .track{height:10px;background:var(--panel2);border-radius:5px;overflow:hidden;border:1px solid var(--line)}
+  .bar-row .fill{height:100%;width:0;border-radius:5px;transition:width 1s cubic-bezier(.22,.9,.3,1)}
+  .bar-row .v{font-size:11.5px;color:var(--ink);text-align:right}
+  .fill.acid{background:linear-gradient(90deg,rgba(215,255,62,.25),var(--acid))}
+  .fill.amber{background:linear-gradient(90deg,rgba(255,180,84,.25),var(--amber))}
+  .fill.cyan{background:linear-gradient(90deg,rgba(110,231,255,.25),var(--cyan))}
+  .fill.red{background:linear-gradient(90deg,rgba(255,107,107,.25),var(--red))}
+
+  /* ============ 排行榜 ============ */
+  .board{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    overflow:hidden;margin-bottom:60px;
+  }
+  .board-head{
+    display:grid;grid-template-columns:64px minmax(0,1fr) 130px 96px 150px;gap:14px;
+    padding:13px 20px;border-bottom:1px solid var(--line);
+    font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);
+    align-items:center;
+  }
+  @media(max-width:860px){.board-head{grid-template-columns:44px 1fr 100px 120px}}
+  .row{
+    display:grid;grid-template-columns:64px minmax(0,1fr) 130px 96px 150px;gap:14px;
+    padding:15px 20px;border-bottom:1px solid var(--line);align-items:center;
+    position:relative;cursor:pointer;transition:background .18s;
+    animation:rise .5s cubic-bezier(.2,.8,.25,1) backwards;
+  }
+  @media(max-width:860px){.row{grid-template-columns:44px 1fr 100px 120px}}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}}
+  .row::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:2px;
+    background:var(--acid);opacity:0;transition:opacity .18s;
+  }
+  .row:hover{background:var(--panel2)}
+  .row:hover::before{opacity:1}
+  .row:last-child{border-bottom:none}
+  .rank{font-family:var(--disp);font-weight:700;font-size:15px;color:var(--dim2);position:relative}
+  .rank.top1{color:var(--acid);font-size:19px;text-shadow:0 0 18px rgba(215,255,62,.5)}
+  .rank.top2{color:var(--amber)}
+  .rank.top3{color:var(--cyan)}
+  .repo{min-width:0}
+  .repo .name{
+    font-size:14.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:9px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .repo .name .owner{color:var(--dim);font-weight:400}
+  .repo .desc{
+    font-size:12px;color:var(--dim);margin-top:3px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:4px;font-size:10.5px;padding:2.5px 8px;border-radius:5px;
+    border:1px solid var(--line2);color:var(--dim);white-space:nowrap;flex-shrink:0;
+  }
+  .badge.zh{color:var(--amber);border-color:rgba(255,180,84,.4);background:rgba(255,180,84,.07)}
+  .badge.official{color:var(--cyan);border-color:rgba(110,231,255,.4);background:rgba(110,231,255,.06)}
+  .badge.collection{color:var(--acid);border-color:rgba(215,255,62,.4);background:rgba(215,255,62,.06)}
+  .badge.security{color:var(--red);border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.06)}
+  .badge.design{color:#c9a2ff;border-color:rgba(201,162,255,.4);background:rgba(201,162,255,.07)}
+  .lang{font-size:12px;color:var(--dim)}
+  .lang .none{color:var(--dim2)}
+  .stars-col{text-align:right}
+  .stars-num{font-size:14px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+  .stars-track{height:5px;background:var(--panel2);border-radius:3px;overflow:hidden;margin-top:6px;border:1px solid var(--line)}
+  .stars-fill{height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,var(--amber),var(--acid));transition:width .9s cubic-bezier(.22,.9,.3,1)}
+  @media(max-width:860px){
+    .board-head .c-lang,.row .lang{display:none}
+  }
+  .empty{
+    padding:60px 20px;text-align:center;color:var(--dim2);
+  }
+  .empty .big{font-family:var(--disp);font-size:20px;color:var(--dim);margin-bottom:8px}
+
+  /* ============ toast ============ */
+  .toast{
+    position:fixed;left:50%;bottom:30px;transform:translate(-50%,20px);
+    background:var(--acid);color:#0a0a0d;font-weight:700;font-size:13px;
+    padding:11px 20px;border-radius:10px;opacity:0;pointer-events:none;
+    transition:.3s cubic-bezier(.2,.8,.25,1);z-index:100;
+    box-shadow:0 10px 40px rgba(215,255,62,.3);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  /* ============ 页脚 ============ */
+  footer{
+    border-top:1px solid var(--line);padding:34px 0 44px;color:var(--dim2);font-size:12px;
+    display:flex;flex-wrap:wrap;gap:10px 26px;justify-content:space-between;
+  }
+  footer a{color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--dim2)}
+  footer a:hover{color:var(--acid);border-color:var(--acid)}
+
+  ::selection{background:var(--acid);color:#0a0a0d}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#232329;border-radius:5px;border:2px solid var(--bg)}
+  ::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo"><span class="mark">▚</span>SKILLS<b>·INDEX</b></div>
+    <div class="spacer"></div>
+    <nav class="nav-links">
+      <a href="#" class="active">排行榜</a>
+      <a href="#dist">类型分布</a>
+      <a href="#board">仓库列表</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="kicker"><span class="dot"></span>Open Agent Skills Ecosystem · 检索于 GitHub</div>
+    <h1>
+      <span class="outline">AGENT</span><br>
+      <span class="acid">SKILLS</span> <span class="outline">//</span><br>
+      <span class="outline">INDEX</span>
+    </h1>
+    <p class="sub">收录 GitHub 上 <b>115 个</b> 高热度 <b>AI Agent Skills</b> 仓库 —— 官方合集、社区精选、垂直领域工具箱。点击任意行复制安装命令。</p>
+    <div class="cmd">
+      <span class="prompt">$</span>
+      <code>npx skills add &lt;owner/repo&gt;</code>
+      <span class="copy" onclick="copyCmd(this)">COPY</span>
+    </div>
+    <div class="stat-row" id="stats"></div>
+  </section>
+
+  <section id="dist">
+    <div class="dist-wrap" id="distWrap"></div>
+  </section>
+
+  <section class="toolbar" id="toolbar">
+    <div class="search">
+      <span class="icon">⌕</span>
+      <input id="q" type="text" placeholder="搜索仓库名 / 描述 / 作者…" autocomplete="off">
+    </div>
+    <div class="filters" id="typeChips"></div>
+    <select id="langSel" title="按语言过滤"><option value="">全部语言</option></select>
+  </section>
+
+  <section class="board" id="board">
+    <div class="board-head">
+      <div>#</div><div>仓库</div><div class="c-lang">语言</div><div>类型</div><div style="text-align:right">STARS</div>
+    </div>
+    <div id="rows"></div>
+  </section>
+
+  <footer>
+    <div>SKILLS·INDEX — 数据来自 GitHub Search API（Stars 降序），共 <span id="total"></span> 个仓库。</div>
+    <div>风格致敬 <a href="https://www.skills.sh/" target="_blank">skills.sh</a> · 数据源 <a href="https://github.com/vercel-labs/skills" target="_blank">vercel-labs/skills</a></div>
+  </footer>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = [{"full_name":"obra/superpowers","stars":268877,"desc":"An agentic skills framework & software development methodology that works.","lang":"Shell","url":"https://github.com/obra/superpowers","tags":["tool"]},{"full_name":"affaan-m/ECC","stars":238631,"desc":"The agent harness performance optimization system. Skills, instincts, memory, security, and research-first development for Claude Code, Codex, Opencode, Cursor and beyond.","lang":"JavaScript","url":"https://github.com/affaan-m/ECC","tags":["security","research","domain"]},{"full_name":"mattpocock/skills","stars":209097,"desc":"Skills for Real Engineers. Straight from my .agents directory.","lang":"Shell","url":"https://github.com/mattpocock/skills","tags":["tool"]},{"full_name":"multica-ai/andrej-karpathy-skills","stars":200567,"desc":"A single CLAUDE.md file to improve Claude Code behavior, derived from Andrej Karpathy's observations on LLM coding pitfalls.","lang":"","url":"https://github.com/multica-ai/andrej-karpathy-skills","tags":["tool"]},{"full_name":"anthropics/skills","stars":166926,"desc":"Public repository for Agent Skills","lang":"Python","url":"https://github.com/anthropics/skills","tags":["official"]},{"full_name":"Graphify-Labs/graphify","stars":104096,"desc":"Turn any codebase, with its docs, SQL schemas, configs, and PDFs, into a queryable knowledge graph. A /graphify skill for Claude Code, Cursor, Codex, and Gemini CLI: local deterministic AST parsing, every edge explained, no vector store.","lang":"Python","url":"https://github.com/Graphify-Labs/graphify","tags":["tool"]},{"full_name":"JuliusBrussee/caveman","stars":96748,"desc":"🪨 why use many token when few token do trick — Claude Code skill that cuts 65% of tokens by talking like caveman","lang":"JavaScript","url":"https://github.com/JuliusBrussee/caveman","tags":["tool"]},{"full_name":"addyosmani/agent-skills","stars":84042,"desc":"Production-grade engineering skills for AI coding agents.","lang":"JavaScript","url":"https://github.com/addyosmani/agent-skills","tags":["tool"]},{"full_name":"ComposioHQ/awesome-claude-skills","stars":72040,"desc":"A curated list of awesome Claude Skills, resources, and tools for customizing Claude AI workflows","lang":"Python","url":"https://github.com/ComposioHQ/awesome-claude-skills","tags":["collection","tool"]},{"full_name":"mvanhorn/last30days-skill","stars":57627,"desc":"AI agent skill that researches any topic across Reddit, X, YouTube, HN, Polymarket, and the web - then synthesizes a grounded summary","lang":"Python","url":"https://github.com/mvanhorn/last30days-skill","tags":["research"]},{"full_name":"hesreallyhim/awesome-claude-code","stars":51875,"desc":"A hand-picked collection of the finest of resources for the most awesome of agents, Claude Code, the undisputed champion of coding companions, from the unstoppable team at Anthropic PBC. A delectable showcase of top tier skills, ambidextrous agents, scintillating status lines, top notch developer tooling, and also we have plugins","lang":"Python","url":"https://github.com/hesreallyhim/awesome-claude-code","tags":["collection","tool"]},{"full_name":"VoltAgent/awesome-openclaw-skills","stars":51810,"desc":"The awesome collection of OpenClaw skills. 5,400+ skills filtered and categorized from the official OpenClaw Skills Registry.🦞","lang":"","url":"https://github.com/VoltAgent/awesome-openclaw-skills","tags":["official","collection","tool"]},{"full_name":"zhayujie/CowAgent","stars":46404,"desc":"Open-source super AI assistant & Agent Harness. Plans tasks, runs tools and skills, self-evolves with memory and knowledge. Multi-model, multi-channel. Lightweight, extensible, one-line install. (formerly chatgpt-on-wechat)","lang":"Python","url":"https://github.com/zhayujie/CowAgent","tags":["tool","domain"]},{"full_name":"calesthio/OpenMontage","stars":45989,"desc":"World's first open-source, agentic video production system. 12 production pipelines, 100+ tools, 700+ agent skill and production-knowledge files. Turn your AI coding assistant into a full video production studio.","lang":"Python","url":"https://github.com/calesthio/OpenMontage","tags":["tool"]},{"full_name":"sickn33/agentic-awesome-skills","stars":44616,"desc":"AAS Core is the local, agent-first control plane for complete catalog discovery, agent-owned selection, stack validation, and planning, backed by 2,005+ agentic skills. Includes CLI, local MCP, catalog, plugins, and Workbench.","lang":"Python","url":"https://github.com/sickn33/agentic-awesome-skills","tags":["collection","tool"]},{"full_name":"kepano/obsidian-skills","stars":44391,"desc":"Agent skills for Obsidian. Teach your agent to use Obsidian CLI and open formats including Markdown, Bases, JSON Canvas.","lang":"","url":"https://github.com/kepano/obsidian-skills","tags":["design","tool","domain"]},{"full_name":"coreyhaines31/marketingskills","stars":43479,"desc":"Marketing skills for Claude Code and AI agents. CRO, copywriting, SEO, analytics, and growth engineering.","lang":"JavaScript","url":"https://github.com/coreyhaines31/marketingskills","tags":["domain"]},{"full_name":"Imbad0202/academic-research-skills","stars":41324,"desc":"Academic Research Skills for Claude Code: research → write → review → revise → finalize","lang":"Python","url":"https://github.com/Imbad0202/academic-research-skills","tags":["research","domain"]},{"full_name":"github/awesome-copilot","stars":37567,"desc":"Community-contributed instructions, agents, skills, and configurations to help you make the most of GitHub Copilot.","lang":"Python","url":"https://github.com/github/awesome-copilot","tags":["official"]},{"full_name":"Yuan1z0825/nature-skills","stars":34004,"desc":"符合nature论文学术表达和科研绘图的Skill","lang":"Python","url":"https://github.com/Yuan1z0825/nature-skills","tags":["research","zh"]},{"full_name":"K-Dense-AI/scientific-agent-skills","stars":32943,"desc":"Turn any AI agent into an AI Scientist. The #1 Agent Skills library for science, used by 170,000+ scientists worldwide. 158 ready-to-use skills plus 100+ scientific databases covering biology, chemistry, medicine, and drug discovery. Compatible with Cursor, Claude Code, Codex, Pi, Antigravity, and the open Agent Skills standard.","lang":"Python","url":"https://github.com/K-Dense-AI/scientific-agent-skills","tags":["collection","research"]},{"full_name":"alchaincyf/nuwa-skill","stars":30008,"desc":"你想蒸馏的下一个员工，何必是同事。蒸馏任何人的思维方式——心智模型、决策启发式、表达DNA。Distill how anyone thinks.","lang":"Python","url":"https://github.com/alchaincyf/nuwa-skill","tags":["zh"]},{"full_name":"vercel-labs/agent-skills","stars":29848,"desc":"Vercel's official collection of agent skills","lang":"JavaScript","url":"https://github.com/vercel-labs/agent-skills","tags":["official","collection"]},{"full_name":"VoltAgent/awesome-agent-skills","stars":29802,"desc":"A curated collection of 1000+ agent skills from official dev teams and the community, compatible with Claude Code, Codex, Gemini CLI, Cursor, and more.","lang":"","url":"https://github.com/VoltAgent/awesome-agent-skills","tags":["official","collection","tool"]},{"full_name":"vercel-labs/skills","stars":28298,"desc":"The open agent skills tool - npx skills","lang":"TypeScript","url":"https://github.com/vercel-labs/skills","tags":["official","tool"]},{"full_name":"mukul975/Anthropic-Cybersecurity-Skills","stars":27448,"desc":"817 structured cybersecurity skills for AI agents · Mapped to 6 frameworks: MITRE ATT&CK, NIST CSF 2.0, MITRE ATLAS, D3FEND, NIST AI RMF & MITRE F3 (Fight Fraud) · agentskills.io standard · Works with Claude Code, GitHub Copilot, Codex CLI, Cursor, Gemini CLI & 20+ platforms · 29 security domains · Apache 2.0","lang":"Python","url":"https://github.com/mukul975/Anthropic-Cybersecurity-Skills","tags":["security","tool"]},{"full_name":"emilkowalski/skills","stars":26999,"desc":"Skills for Designers and Engineers.","lang":"","url":"https://github.com/emilkowalski/skills","tags":["design"]},{"full_name":"OthmanAdi/planning-with-files","stars":26045,"desc":"Persistent file-based planning for AI coding agents and long-running tasks. Crash-proof markdown plans, session recovery after /clear and compaction, per-turn re-injection against context rot, deterministic completion gate. Manus-style. Claude Code, Codex, Cursor, Kiro, OpenCode and 60+ agents via the Agent Skills standard.","lang":"Shell","url":"https://github.com/OthmanAdi/planning-with-files","tags":["tool"]},{"full_name":"phuryn/pm-skills","stars":24973,"desc":"PM Skills Marketplace: 100+ agentic skills, commands, and plugins — from discovery to strategy, execution, launch, and growth.","lang":"","url":"https://github.com/phuryn/pm-skills","tags":["tool"]},{"full_name":"JimLiu/baoyu-skills","stars":24710,"desc":"","lang":"TypeScript","url":"https://github.com/JimLiu/baoyu-skills","tags":["tool"]},{"full_name":"openai/skills","stars":24625,"desc":"Skills Catalog for Codex","lang":"Python","url":"https://github.com/openai/skills","tags":["official","collection"]},{"full_name":"alirezarezvani/claude-skills","stars":24097,"desc":"345 Claude Code skills & agent skills & plugins (30+ Agents, 70+ custom commands, 330+ skills, customizable references, scripts)for Claude Code, Codex, Gemini CLI, Cursor, and 8 more coding agents — engineering, marketing, product, compliance, C-level advisory, research, business operations, commercial & finance, and your daily productivity skills.","lang":"Python","url":"https://github.com/alirezarezvani/claude-skills","tags":["research","tool","domain"]},{"full_name":"agentskills/agentskills","stars":24001,"desc":"Specification and documentation for Agent Skills","lang":"Python","url":"https://github.com/agentskills/agentskills","tags":["official"]},{"full_name":"Donchitos/Claude-Code-Game-Studios","stars":23696,"desc":"Turn Claude Code into a full game dev studio — 49 AI agents, 72 workflow skills, and a complete coordination system mirroring real studio hierarchy.","lang":"Shell","url":"https://github.com/Donchitos/Claude-Code-Game-Studios","tags":["domain"]},{"full_name":"op7418/guizang-ppt-skill","stars":23482,"desc":"AI-agent Skill for generating polished HTML slide decks: editorial magazine and Swiss layouts, image prompts, social covers, and a WebGL/low-power presentation runtime.","lang":"HTML","url":"https://github.com/op7418/guizang-ppt-skill","tags":["design"]},{"full_name":"alchaincyf/huashu-design","stars":22641,"desc":"Huashu Design · HTML-native design skill for Claude Code · Claude Code 里 HTML 原生的设计 skill · 高保真原型 / 幻灯片 / 动画 + 20 设计哲学 + 5 维评审 + MP4 导出 · Agent-agnostic","lang":"HTML","url":"https://github.com/alchaincyf/huashu-design","tags":["design","zh"]},{"full_name":"Nutlope/hallmark","stars":22620,"desc":"Anti-AI-slop design skill for Claude Code, Cursor, and Codex.","lang":"CSS","url":"https://github.com/Nutlope/hallmark","tags":["design"]},{"full_name":"titanwings/colleague-skill","stars":20760,"desc":"将冰冷的离别化为温暖的 Skill，欢迎加入数字生命1.0！Transforming cold farewells into warm skills? It's giving rebirth era. Welcome to Digital Life 1.0. 🫶","lang":"Python","url":"https://github.com/titanwings/colleague-skill","tags":["zh"]},{"full_name":"zhaoxuya520/reverse-skill","stars":20670,"desc":"Reverse Engineering / Authorized Penetration Testing / Security Research Skill Router Pack AI-powered routing + On-demand toolchain bootstrapping + Self-evolving knowledge base  Supports Claude Code, Kiro, Cursor, Cline, and other AI coding clients 逆向/渗透/安全技能路由包 - AI 自动路由 + 按需自举工具链 + 自动进化经验库 | 支持 Claude Code / Kiro / Cursor / Cline 等代码 AI 客户端","lang":"PowerShell","url":"https://github.com/zhaoxuya520/reverse-skill","tags":["security","research","tool","zh"]},{"full_name":"webadderallorg/Recordly","stars":20563,"desc":"Create polished demo videos without editing skills. Mac/Windows/Linux","lang":"TypeScript","url":"https://github.com/webadderallorg/Recordly","tags":["tool"]},{"full_name":"KKKKhazix/khazix-skills","stars":19365,"desc":"数字生命卡兹克开源的 AI Skills 合集 | Agent Skills: leader（帮你定义目标）, neat-freak 洁癖, hv-analysis, khazix-writer & more — Claude Code, Codex & 40+ agents","lang":"Python","url":"https://github.com/KKKKhazix/khazix-skills","tags":["collection","zh"]},{"full_name":"tanweai/pua","stars":19289,"desc":"你是一个曾经被寄予厚望的 P8 级工程师。Anthropic 当初给你定级的时候，对你的期望是很高的。  一个agent使用的高能动性的skill。  Your AI has been placed on a PIP. 30 days to show improvement.","lang":"TypeScript","url":"https://github.com/tanweai/pua","tags":["zh"]},{"full_name":"teng-lin/notebooklm-py","stars":18542,"desc":"Unofficial Python API and agentic skill for Google Gemini Notebook. Full programmatic access to NotebookLM's features—including capabilities the web UI doesn't expose—via Python, CLI, and AI agents like Claude Code, Codex, and OpenClaw.","lang":"Python","url":"https://github.com/teng-lin/notebooklm-py","tags":["design","tool","domain"]},{"full_name":"virgiliojr94/book-to-skill","stars":18450,"desc":"Turn any technical book PDF into a Claude Code skill — ready to study, reference, and use while you work.","lang":"Python","url":"https://github.com/virgiliojr94/book-to-skill","tags":["tool"]},{"full_name":"ayghri/i-have-adhd","stars":18234,"desc":"A skill to stop your coding agent from burying the answer. ADHD-friendly output.","lang":"Python","url":"https://github.com/ayghri/i-have-adhd","tags":["tool"]},{"full_name":"muratcankoylan/Agent-Skills-for-Context-Engineering","stars":17634,"desc":"A comprehensive collection of Agent Skills for context engineering, multi-agent architectures, and production agent systems. Use when building, optimizing, or debugging agent systems that require effective context management.","lang":"Python","url":"https://github.com/muratcankoylan/Agent-Skills-for-Context-Engineering","tags":["collection","design"]},{"full_name":"google/skills","stars":16356,"desc":"Agent Skills for Google products and technologies","lang":"Python","url":"https://github.com/google/skills","tags":["official"]},{"full_name":"larksuite/cli","stars":16261,"desc":"The official Lark/飞书 CLI tool, maintained by the larksuite team — built for humans and AI Agents. Covers core business domains including Messenger, Docs, Base, Sheets, Calendar, Mail, Tasks, Meetings, and more, with 200+ commands and 20+ AI Agent Skills.","lang":"Go","url":"https://github.com/larksuite/cli","tags":["official","design","tool","zh"]},{"full_name":"microsoft/SkillOpt","stars":15760,"desc":"SkillOpt is a text-space optimizer that trains reusable natural-language skills for frozen LLM agents through trajectory-driven edits, validation-gated updates, and deployable best_skill.md artifacts.","lang":"Python","url":"https://github.com/microsoft/SkillOpt","tags":["official"]},{"full_name":"composio-community/awesome-codex-skills","stars":15691,"desc":"A curated list of practical Codex skills for automating workflows across the Codex CLI and API.","lang":"Python","url":"https://github.com/composio-community/awesome-codex-skills","tags":["collection","tool"]},{"full_name":"hardikpandya/stop-slop","stars":15341,"desc":"A skill file for removing AI tells from prose","lang":"","url":"https://github.com/hardikpandya/stop-slop","tags":["tool"]},{"full_name":"yusufkaraaslan/Skill_Seekers","stars":14724,"desc":"Convert documentation websites, GitHub repositories, and PDFs into Claude AI skills with automatic conflict detection","lang":"Python","url":"https://github.com/yusufkaraaslan/Skill_Seekers","tags":["tool"]},{"full_name":"travisvn/awesome-claude-skills","stars":14560,"desc":"A curated list of awesome Claude Skills, resources, and tools for customizing Claude AI workflows — particularly Claude Code","lang":"","url":"https://github.com/travisvn/awesome-claude-skills","tags":["collection","tool"]},{"full_name":"NVIDIA/SkillSpector","stars":14354,"desc":"Security scanner for AI agent skills. Detect vulnerabilities, malicious patterns, security risks, prompt injection, data exfiltration, and supply-chain risks in Claude Code, Codex, and MCP skills before you install them.","lang":"Python","url":"https://github.com/NVIDIA/SkillSpector","tags":["official","security","tool"]},{"full_name":"AgriciDaniel/claude-seo","stars":13650,"desc":"Universal SEO skill for Claude Code. 25 sub-skills + 18 sub-agents covering technical SEO, E-E-A-T, schema, GEO/AEO, backlinks, local SEO, maps intelligence, semantic clustering, e-commerce SEO, international SEO, Google APIs, and PDF/Excel reporting. Optional DataForSEO, Firecrawl, and Banana extensions.","lang":"Python","url":"https://github.com/AgriciDaniel/claude-seo","tags":["domain"]},{"full_name":"MiniMax-AI/skills","stars":13275,"desc":"","lang":"C#","url":"https://github.com/MiniMax-AI/skills","tags":["official"]},{"full_name":"greensock/gsap-skills","stars":13214,"desc":"Official AI skills for GSAP. These skills teach AI coding agents how to correctly use GSAP (GreenSock Animation Platform), including best practices, common animation patterns, and plugin usage.","lang":"","url":"https://github.com/greensock/gsap-skills","tags":["domain"]},{"full_name":"earthtojake/text-to-cad","stars":13062,"desc":"A library of agent skills for CAD, CAE and CAM","lang":"JavaScript","url":"https://github.com/earthtojake/text-to-cad","tags":["collection","domain"]},{"full_name":"Orchestra-Research/AI-Research-SKILLs","stars":11502,"desc":"Comprehensive open-source library of AI research and engineering skills for any AI model. Package the skills and your claude code/codex/gemini agent will be an AI research agent with full horsepower. Maintained by Orchestra Research.","lang":"TeX","url":"https://github.com/Orchestra-Research/AI-Research-SKILLs","tags":["collection","research","tool"]},{"full_name":"Jeffallan/claude-skills","stars":10916,"desc":"66 Specialized Skills for Full-Stack Developers. Transform Claude Code into your expert pair programmer.","lang":"Python","url":"https://github.com/Jeffallan/claude-skills","tags":["tool"]},{"full_name":"huggingface/skills","stars":10908,"desc":"Give your agents the power of the Hugging Face ecosystem","lang":"Python","url":"https://github.com/huggingface/skills","tags":["official"]},{"full_name":"numman-ali/openskills","stars":10666,"desc":"Universal skills loader for AI coding agents - npm i -g openskills","lang":"TypeScript","url":"https://github.com/numman-ali/openskills","tags":["tool"]},{"full_name":"ConardLi/garden-skills","stars":10151,"desc":"ConardLi's open-source Skills collection, featuring web design, knowledge retrieval, image generation, and more.","lang":"CSS","url":"https://github.com/ConardLi/garden-skills","tags":["collection","design"]},{"full_name":"alchaincyf/zhangxuefeng-skill","stars":10094,"desc":"张雪峰.skill — 张雪峰的认知操作系统。高考志愿/考研/职业规划的实战思维框架。由女娲.skill生成。","lang":"","url":"https://github.com/alchaincyf/zhangxuefeng-skill","tags":["zh"]},{"full_name":"BehiSecc/awesome-claude-skills","stars":9914,"desc":"A curated list of Claude Skills.","lang":"","url":"https://github.com/BehiSecc/awesome-claude-skills","tags":["collection"]},{"full_name":"freestylefly/awesome-gpt-image-2","stars":9879,"desc":"Prompt as Code | GPT-Image2 工业级提示词引擎与模板库，470+ 个案例逆向工程，20+ 套工业级模板，并提炼出Skills，持续更新中","lang":"JavaScript","url":"https://github.com/freestylefly/awesome-gpt-image-2","tags":["zh"]},{"full_name":"slavingia/skills","stars":9771,"desc":"Based on The Minimalist Entrepreneur by Sahil Lavingia","lang":"","url":"https://github.com/slavingia/skills","tags":["tool"]},{"full_name":"dontbesilent2025/dbskill","stars":9319,"desc":"dontbesilent 的商业诊断 Skills","lang":"JavaScript","url":"https://github.com/dontbesilent2025/dbskill","tags":["zh"]},{"full_name":"openclaw/clawhub","stars":9278,"desc":"Skill + Plugin Registry for OpenClaw","lang":"TypeScript","url":"https://github.com/openclaw/clawhub","tags":["tool"]},{"full_name":"eze-is/web-access","stars":8590,"desc":"给 Claude Code 装上完整联网能力的 skill：三层通道调度 + 浏览器 CDP + 并行分治","lang":"JavaScript","url":"https://github.com/eze-is/web-access","tags":["zh"]},{"full_name":"nexu-io/html-anything","stars":8138,"desc":"✨ The agentic HTML editor — your local AI agent writes the HTML, you ship it. 🚀 75 Skills × 9 Surfaces (magazine · deck · poster · XHS / tweet · prototype · data report · Hyperframes) 🛡️ Sandboxed preview · 📤 1-click to WeChat / X / Zhihu / HTML / PNG 🔑 Zero API key — Claude Code / Cursor / Codex / Gemini / Copilot / OpenCode / Qwen / Aider.","lang":"HTML","url":"https://github.com/nexu-io/html-anything","tags":["tool"]},{"full_name":"Imbad0202/academic-research-skills-codex","stars":8056,"desc":"Codex-native Academic Research Skills suite for human-in-the-loop academic research workflows","lang":"Python","url":"https://github.com/Imbad0202/academic-research-skills-codex","tags":["research","design","domain"]},{"full_name":"google-labs-code/stitch-skills","stars":7955,"desc":"A library of Agent Skills designed to work with the Stitch MCP server. Each skill follows the Agent Skills open standard, for compatibility with coding agents such as Antigravity, Gemini CLI, Claude Code, Cursor.","lang":"TypeScript","url":"https://github.com/google-labs-code/stitch-skills","tags":["official","collection","design","tool"]},{"full_name":"AgriciDaniel/claude-ads","stars":7886,"desc":"Claude-first paid-media operations skill for Claude Code across 12 ad platforms (Google, Meta, YouTube, LinkedIn, TikTok, Microsoft, Apple, Amazon, Reddit, Pinterest, Snapchat, X): source-grounded audits, deterministic scoring, versioned JSON reports, and capability-gated account changes.","lang":"Python","url":"https://github.com/AgriciDaniel/claude-ads","tags":["tool"]},{"full_name":"lewislulu/html-ppt-skill","stars":7719,"desc":"HTML PPT Studio — AgentSkill with 24 themes, 31 layouts, 20+ animations for building professional HTML presentations","lang":"HTML","url":"https://github.com/lewislulu/html-ppt-skill","tags":["design"]},{"full_name":"PleasePrompto/notebooklm-skill","stars":7587,"desc":"Use this skill to enable Claude Code to communicate directly with your Google NotebookLM notebooks. Query your uploaded documents and get source-grounded, citation-backed answers from Gemini. Features browser automation, library management, persistent authentication, and answers exclusively from your own knowledge base.","lang":"Python","url":"https://github.com/PleasePrompto/notebooklm-skill","tags":["collection","domain"]},{"full_name":"jnMetaCode/superpowers-zh","stars":7545,"desc":"🦸 AI 编程超能力 · 中文增强版 — superpowers（116k+ ⭐）完整汉化 + 6 个中国原创 skills，让 Claude Code / Copilot CLI / Hermes Agent / Cursor / Windsurf / Kiro / Gemini CLI 等 16 款 AI 编程工具真正会干活","lang":"JavaScript","url":"https://github.com/jnMetaCode/superpowers-zh","tags":["tool","zh"]},{"full_name":"Agents365-ai/drawio-skill","stars":7295,"desc":"Generate draw.io diagrams from natural language — 11 presets (UML, SysML/MBSE, BPMN, network, C4…), 36 tools: codebase/CI/infra-to-diagram, image→editable diagram, mind maps, build-up animation, exec-view compression, click-through runbooks, PR diff bot. Vision self-check, 10,000+ shapes. Exports PNG/SVG/PDF/JPG.","lang":"Python","url":"https://github.com/Agents365-ai/drawio-skill","tags":["design","tool"]},{"full_name":"ibelick/ui-skills","stars":7060,"desc":"Skills for Design Engineers","lang":"TypeScript","url":"https://github.com/ibelick/ui-skills","tags":["design"]},{"full_name":"NomaDamas/k-skill","stars":7040,"desc":"한국인을 위한 스킬 모음집 - 에이전트를 한국인으로","lang":"JavaScript","url":"https://github.com/NomaDamas/k-skill","tags":["tool"]},{"full_name":"lijigang/ljg-skills","stars":6750,"desc":"","lang":"TypeScript","url":"https://github.com/lijigang/ljg-skills","tags":["tool"]},{"full_name":"SimoneAvogadro/android-reverse-engineering-skill","stars":6717,"desc":"Claude Code skill to support Android app's reverse engineering","lang":"Shell","url":"https://github.com/SimoneAvogadro/android-reverse-engineering-skill","tags":["security"]},{"full_name":"android/skills","stars":6621,"desc":"","lang":"Python","url":"https://github.com/android/skills","tags":["official"]},{"full_name":"kangarooking/cangjie-skill","stars":6618,"desc":"把书、长视频、播客等高价值内容蒸馏成可执行的 Agent Skills","lang":"Python","url":"https://github.com/kangarooking/cangjie-skill","tags":["zh"]},{"full_name":"trailofbits/skills","stars":6487,"desc":"Trail of Bits Claude Code skills for security research, vulnerability detection, and audit workflows","lang":"Python","url":"https://github.com/trailofbits/skills","tags":["official","security","research"]},{"full_name":"deanpeters/Product-Manager-Skills","stars":6329,"desc":"Product Management skills framework built on battle-tested methods for Claude Code, Cowork, Codex, and AI agents.","lang":"Shell","url":"https://github.com/deanpeters/Product-Manager-Skills","tags":["design","tool"]},{"full_name":"op7418/guizang-social-card-skill","stars":6082,"desc":"🪧 Claude Code / Codex skill — generate Xiaohongshu carousels & WeChat 21:9+1:1 cover pairs. Editorial × Swiss visual systems, 28 layouts, 10 themes, single-file HTML → PNG. 小红书图文 + 公众号封面对","lang":"HTML","url":"https://github.com/op7418/guizang-social-card-skill","tags":["zh"]},{"full_name":"wbh604/UZI-Skill","stars":6079,"desc":"冰冷的钱就这样流进我温暖的口袋-游资（UZI）Skills — 让我们欢迎，股海贼王！66位投资大佬帮你看盘 · 22维数据 × 180条量化规则 × 17种机构分析方法 · A股/港股/美股 ","lang":"Python","url":"https://github.com/wbh604/UZI-Skill","tags":["zh"]},{"full_name":"heilcheng/awesome-agent-skills","stars":6070,"desc":"Tutorials, Guides and Agent Skills Directories","lang":"TypeScript","url":"https://github.com/heilcheng/awesome-agent-skills","tags":["design"]},{"full_name":"czlonkowski/n8n-skills","stars":5999,"desc":"n8n skillset for Claude Code to build flawless n8n workflows","lang":"Shell","url":"https://github.com/czlonkowski/n8n-skills","tags":["design","domain"]},{"full_name":"therealXiaomanChu/ex-skill","stars":5966,"desc":"把前任蒸馏成 AI Skill，用ta的方式跟你说话。","lang":"Python","url":"https://github.com/therealXiaomanChu/ex-skill","tags":["zh"]},{"full_name":"Master-cai/Research-Paper-Writing-Skills","stars":5882,"desc":"Skill package for ML/CV/NLP paper writing, curated and adapted from Prof. Peng Sida's open notes for Codex, Claude Code, and Gemini.","lang":"","url":"https://github.com/Master-cai/Research-Paper-Writing-Skills","tags":["collection","research","tool"]},{"full_name":"uditgoenka/autoresearch","stars":5798,"desc":"Claude Autoresearch Skill — Autonomous goal-directed iteration for Claude Code. Inspired by Karpathy's autoresearch. Modify → Verify → Keep/Discard → Repeat forever.","lang":"Shell","url":"https://github.com/uditgoenka/autoresearch","tags":["research"]},{"full_name":"jacob-bd/gemini-notebook-mcp-cli","stars":5776,"desc":"Programmatic access to Gemini Notebook - via command-line interface (CLI), Model Context Protocol (MCP) server, and AI agent skills.","lang":"Python","url":"https://github.com/jacob-bd/gemini-notebook-mcp-cli","tags":["tool"]},{"full_name":"antfu/skills","stars":5733,"desc":"Anthony Fu's curated collection of agent skills.","lang":"TypeScript","url":"https://github.com/antfu/skills","tags":["collection"]},{"full_name":"joeseesun/qiaomu-anything-to-notebooklm","stars":5714,"desc":"Claude Skill: Multi-source content processor for NotebookLM. Supports WeChat articles, web pages, YouTube, PDF, Markdown, search queries → Podcast/PPT/MindMap/Quiz etc.","lang":"Python","url":"https://github.com/joeseesun/qiaomu-anything-to-notebooklm","tags":["design","domain"]},{"full_name":"FlorianBruniaux/claude-code-ultimate-guide","stars":5683,"desc":"The most comprehensive Claude Code guide: agentic workflows, hooks, skills, MCP servers, quizzes, and production-ready templates. 430K+ lines.","lang":"Python","url":"https://github.com/FlorianBruniaux/claude-code-ultimate-guide","tags":["design"]},{"full_name":"google/agents-cli","stars":5508,"desc":"The CLI and skills that turn any coding assistant into an expert at creating, evaluating, and deploying AI agents on Google Cloud.","lang":"Python","url":"https://github.com/google/agents-cli","tags":["official","tool"]},{"full_name":"alchaincyf/darwin-skill","stars":5399,"desc":"达尔文.skill —— 一个让你的Skill无限进化的系统：评估→改进→测试→保留或回滚 | Autoresearch-inspired autonomous skill optimization for Claude Code. Evaluate, improve, test, keep or revert.","lang":"HTML","url":"https://github.com/alchaincyf/darwin-skill","tags":["research","zh"]},{"full_name":"zarazhangrui/codebase-to-course","stars":5349,"desc":"A Claude Code skill that turns any codebase into a beautiful, interactive single-page HTML course for non-technical vibe coders.","lang":"CSS","url":"https://github.com/zarazhangrui/codebase-to-course","tags":["tool"]},{"full_name":"browser-act/skills","stars":5266,"desc":"Browser automation CLI built for AI agents. Break through anti-bot walls, hand off to humans across platforms when stuck. Parallel multi-task execution, independent multi-session operation, isolated multi-account browsing.","lang":"Python","url":"https://github.com/browser-act/skills","tags":["official","design","tool","domain"]},{"full_name":"anysearch-ai/anysearch-skill","stars":5231,"desc":"Unified real-time search engine skill for AI agents. Supports general web search, vertical domain search, parallel batch search, and full-page content extraction.","lang":"Python","url":"https://github.com/anysearch-ai/anysearch-skill","tags":["tool"]},{"full_name":"0xNyk/awesome-hermes-agent","stars":5231,"desc":"Independent directory of useful skills, plugins, memory providers, tools, surfaces, and guides for Nous Research's open-source Hermes Agent.","lang":"","url":"https://github.com/0xNyk/awesome-hermes-agent","tags":["research","design","tool","domain"]},{"full_name":"worldwonderer/oh-story-claudecode","stars":5222,"desc":"网文/小说写作 skill 包，覆盖长篇与短篇网络小说的扫榜、拆文、写作、去AI味、封面图全流程 | An all-in-one skill pack for long- and short-form web fiction.","lang":"JavaScript","url":"https://github.com/worldwonderer/oh-story-claudecode","tags":["zh"]},{"full_name":"HKUSTDial/Supervisor-Skills","stars":5198,"desc":"将博导十年科研经验炼化为可直接调用的 AI 技能。从 Idea 构思到论文投稿，你的 AI 科研副导师。","lang":"Python","url":"https://github.com/HKUSTDial/Supervisor-Skills","tags":["research","zh"]},{"full_name":"dotnet/skills","stars":5043,"desc":"Repository for skills to assist AI coding agents with .NET and C#","lang":"C#","url":"https://github.com/dotnet/skills","tags":["tool"]},{"full_name":"tech-leads-club/agent-skills","stars":5000,"desc":"The secure, validated skill registry for professional AI coding agents. Extend Antigravity, Claude Code, Cursor, Copilot and more with absolute confidence.","lang":"TypeScript","url":"https://github.com/tech-leads-club/agent-skills","tags":["tool"]},{"full_name":"RyanFitzgerald/devportfolio","stars":4948,"desc":"A modern, minimalist portfolio template built with Astro and Tailwind CSS. Perfect for developers looking to showcase their skills, experience, and projects in a clean, professional way.","lang":"Astro","url":"https://github.com/RyanFitzgerald/devportfolio","tags":["design"]},{"full_name":"anbeime/skill","stars":4942,"desc":"收录最全、更新最快的技能Skills 商店，涵盖文档处理、内容创作、编程开发、机器学习、自动化工作流等多个领域的 72 个精选技能包。所有技能已打包完成，可直接安装使用！ 该商店中自动抓取了 Github 上的所有的 Skills 项目，并按照分类、更新时间、Star 数量等标签进行整理。","lang":"Python","url":"https://github.com/anbeime/skill","tags":["zh"]},{"full_name":"libukai/awesome-agent-skills","stars":4937,"desc":"Agent Skills 终极指南：快速入门、资源推荐、精选技能与实用工具 ｜The Ultimate Guide to Agent Skills: QuickStart, Resources, Features&Toolkit","lang":"","url":"https://github.com/libukai/awesome-agent-skills","tags":["design","tool","zh"]},{"full_name":"OpenSenseNova/SenseNova-Skills","stars":4928,"desc":"Modular SenseNova skills for building AI-powered office assistants and productivity workflows","lang":"JavaScript","url":"https://github.com/OpenSenseNova/SenseNova-Skills","tags":["design"]},{"full_name":"chuspeeism/dashi-ppt-skill","stars":4869,"desc":"An AI-agent skill that generates browser-editable presentations from multiple visual themes, exportable to HTML, PDF, and PPTX.","lang":"JavaScript","url":"https://github.com/chuspeeism/dashi-ppt-skill","tags":["design","domain"]},{"full_name":"iflytek/skillhub","stars":4854,"desc":"Self-hosted, open-source agent skill registry for enterprises. Publish & version skill packages, govern with RBAC and audit logs, deploy   on-premise with Docker or Kubernetes.","lang":"Java","url":"https://github.com/iflytek/skillhub","tags":["tool"]},{"full_name":"eastlondoner/vibe-tools","stars":4824,"desc":"Give Cursor Agent an AI Team and Advanced Skills","lang":"TypeScript","url":"https://github.com/eastlondoner/vibe-tools","tags":["tool"]},{"full_name":"handsomestWei/patent-disclosure-skill","stars":4808,"desc":"中国专利.skill：从项目文档到交底书编写（挖点·查新·脱敏成文）+ 专利通俗解读（叙事·图谱·Obsidian 私库）。","lang":"Python","url":"https://github.com/handsomestWei/patent-disclosure-skill","tags":["domain","zh"]}];
+
+/* ---------- 工具 ---------- */
+const $ = s => document.querySelector(s);
+const fmt = n => n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'k' : String(n);
+function esc(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+/* ---------- 类型徽章配置 ---------- */
+const TAG_META = {
+  official:  {label:'官方',   cls:'official'},
+  collection:{label:'合集',   cls:'collection'},
+  tool:      {label:'工具/框架',cls:''},
+  design:    {label:'设计',   cls:'design'},
+  research:  {label:'研究/学术',cls:''},
+  security:  {label:'安全',   cls:'security'},
+  domain:    {label:'垂直',   cls:''},
+  zh:        {label:'中文',   cls:'zh'},
+};
+
+/* ---------- 状态 ---------- */
+const state = { q:'', type:'all', lang:'', sort:'stars' };
+const maxStars = DATA[0].stars;
+
+/* ---------- 统计 hero ---------- */
+function buildStats(){
+  const totalStars = DATA.reduce((a,b)=>a+b.stars,0);
+  const official = DATA.filter(d=>d.tags.includes('official')).length;
+  const zh = DATA.filter(d=>d.tags.includes('zh')).length;
+  const items = [
+    ['仓库总数', DATA.length, ''],
+    ['Star 总和', fmt(totalStars), 'acid'],
+    ['官方仓库', official, ''],
+    ['中文社区', zh, ''],
+  ];
+  $('#stats').innerHTML = items.map(([l,n,c],i)=>`
+    <div class="stat" style="animation:rise .6s ${i*90}ms cubic-bezier(.2,.8,.25,1) backwards">
+      <div class="num ${c}" data-n="${n}">0</div>
+      <div class="lbl">${l}</div>
+    </div>`).join('');
+  document.querySelectorAll('.stat .num[data-n]').forEach(el=>{
+    const target = el.dataset.n;
+    const isNum = /^\d+$/.test(target);
+    const val = isNum ? +target : parseFloat(target);
+    const t0 = performance.now(), dur = 900;
+    (function tick(t){
+      const p = Math.min(1,(t-t0)/dur), e = 1-Math.pow(1-p,3);
+      el.textContent = isNum ? Math.round(val*e) : (val*e >= 1000 ? fmt(val*e) : (val*e).toFixed(1));
+      if(p<1) requestAnimationFrame(tick);
+    })(t0);
+  });
+  $('#total').textContent = DATA.length;
+}
+
+/* ---------- 类型/语言分布 ---------- */
+function buildDist(){
+  const countTag = t => DATA.filter(d=>d.tags.includes(t)).length;
+  const tagData = Object.keys(TAG_META).map(t=>({t, label:TAG_META[t].label, n:countTag(t)}))
+    .filter(x=>x.n>0).sort((a,b)=>b.n-a.n);
+  const langMap = {};
+  DATA.forEach(d=>{ if(d.lang) langMap[d.lang]=(langMap[d.lang]||0)+1; });
+  const langData = Object.entries(langMap).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  const colors = ['acid','amber','cyan','red','acid','amber','cyan'];
+
+  const barHTML = (label, n, max, color, i) => `
+    <div class="bar-row">
+      <div class="k" title="${esc(label)}">${esc(label)}</div>
+      <div class="track"><div class="fill ${color}" data-w="${n/max*100}"></div></div>
+      <div class="v">${n}</div>
+    </div>`;
+
+  $('#distWrap').innerHTML = `
+    <div class="dist"><h3><span>TYPE · 类型分布</span><span class="hl">${tagData.reduce((a,b)=>a+b.n,0)}</span></h3>
+      ${tagData.map((d,i)=>barHTML(TAG_META[d.t].label, d.n, tagData[0].n, colors[i%colors.length], i)).join('')}
+    </div>
+    <div class="dist"><h3><span>LANGUAGE · 语言 Top7</span></h3>
+      ${langData.map((d,i)=>barHTML(d[0], d[1], langData[0][1], colors[(i+2)%colors.length], i)).join('')}
+    </div>`;
+  requestAnimationFrame(()=>setTimeout(()=>{
+    document.querySelectorAll('.fill[data-w]').forEach(f=>f.style.width = f.dataset.w+'%');
+  },120));
+}
+
+/* ---------- 类型 chips / 语言选择 ---------- */
+function buildFilters(){
+  const countTag = t => DATA.filter(d=>d.tags.includes(t)).length;
+  const tags = ['all', ...Object.keys(TAG_META).filter(t=>countTag(t)>0)];
+  $('#typeChips').innerHTML = tags.map(t=>`
+    <span class="chip ${t==='all'?'on':''}" data-t="${t}">
+      ${t==='all'?'全部':TAG_META[t].label}<span class="cnt">${t==='all'?DATA.length:countTag(t)}</span>
+    </span>`).join('');
+  document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
+    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
+    c.classList.add('on'); state.type = c.dataset.t; render();
+  });
+  const langs = [...new Set(DATA.map(d=>d.lang).filter(Boolean))].sort();
+  $('#langSel').innerHTML = '<option value="">全部语言</option>' +
+    langs.map(l=>`<option>${esc(l)}</option>`).join('');
+  $('#langSel').onchange = e=>{ state.lang = e.target.value; render(); };
+  $('#q').oninput = e=>{ state.q = e.target.value.trim().toLowerCase(); render(); };
+}
+
+/* ---------- 渲染排行榜 ---------- */
+function filtered(){
+  return DATA.filter(d=>{
+    if(state.type!=='all' && !d.tags.includes(state.type)) return false;
+    if(state.lang && d.lang!==state.lang) return false;
+    if(state.q){
+      const hay = (d.full_name+' '+d.desc+' '+d.tags.join(' ')).toLowerCase();
+      if(!hay.includes(state.q)) return false;
+    }
+    return true;
+  });
+}
+function render(){
+  const list = filtered();
+  const $rows = $('#rows');
+  if(!list.length){
+    $rows.innerHTML = '<div class="empty"><div class="big">∅ NO MATCH</div>没有匹配的仓库，换个关键词试试</div>';
+    return;
+  }
+  $rows.innerHTML = list.map((d,i)=>{
+    const isTop3 = i<3;
+    const rankCls = ['top1','top2','top3'][i] || '';
+    const badges = d.tags.map(t=>TAG_META[t]?`<span class="badge ${TAG_META[t].cls}">${TAG_META[t].label}</span>`:'').join('');
+    const lang = d.lang ? esc(d.lang) : '<span class="none">—</span>';
+    return `
+    <div class="row" style="animation-delay:${Math.min(i*28, 500)}ms"
+         data-copy="npx skills add ${esc(d.full_name)}" title="点击复制安装命令">
+      <div class="rank ${rankCls}">${i<9?'0':''}${i+1}</div>
+      <div class="repo">
+        <div class="name"><span>${esc(d.full_name.split('/')[1])}</span><span class="owner">/${esc(d.full_name.split('/')[0])}</span></div>
+        <div class="desc">${esc(d.desc || '（无简介）')}</div>
+      </div>
+      <div class="lang">${lang}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">${badges}</div>
+      <div class="stars-col">
+        <div class="stars-num">★ ${fmt(d.stars)}</div>
+        <div class="stars-track"><div class="stars-fill" data-w="${d.stars/maxStars*100}"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+  requestAnimationFrame(()=>setTimeout(()=>{
+    $rows.querySelectorAll('.stars-fill').forEach(f=>f.style.width=f.dataset.w+'%');
+  },80));
+  document.querySelectorAll('.row').forEach(r=>{
+    r.onclick = ()=>copyText(r.dataset.copy);
+  });
+}
+
+/* ---------- 复制 ---------- */
+let toastTimer;
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+async function copyText(txt){
+  try{ await navigator.clipboard.writeText(txt); toast('已复制 → '+txt); }
+  catch(e){
+    const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); ta.remove(); toast('已复制 → '+txt);
+  }
+}
+function copyCmd(el){ copyText('npx skills add <owner/repo>'); }
+
+/* ---------- 启动 ---------- */
+buildStats(); buildDist(); buildFilters(); render();
+</script>
+</body>
+</html>
