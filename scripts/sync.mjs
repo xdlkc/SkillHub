@@ -11,6 +11,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import path from 'node:path';
 import fs from 'node:fs';
+import os from 'node:os';
 
 process.removeAllListeners('warning');
 
@@ -44,7 +45,7 @@ function parseTags(s) {
 }
 
 function exportJson(db) {
-  const rows = db.prepare('SELECT full_name, stars, desc, lang, url, tags FROM skills ORDER BY stars DESC').all();
+  const rows = db.prepare('SELECT full_name, stars, desc, lang, url, tags, cloned FROM skills ORDER BY stars DESC').all();
   const skills = rows.map((r) => ({
     full_name: r.full_name,
     stars: r.stars,
@@ -52,6 +53,7 @@ function exportJson(db) {
     lang: r.lang,
     url: r.url,
     tags: parseTags(r.tags),
+    cloned: !!r.cloned,
   }));
   const payload = { version: VERSION, exported_at: new Date().toISOString(), skills };
   fs.writeFileSync(JSON_PATH, JSON.stringify(payload, null, 2) + '\n');
@@ -71,13 +73,16 @@ function importJson(db, { prune = false } = {}) {
   const skills = payload.skills ?? [];
   const existing = new Set(db.prepare('SELECT full_name FROM skills').all().map((r) => r.full_name));
   const upsert = db.prepare(
-    `INSERT INTO skills (full_name, stars, desc, lang, url, tags, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+    `INSERT INTO skills (full_name, stars, desc, lang, url, tags, cloned, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
      ON CONFLICT(full_name) DO UPDATE SET
        stars = excluded.stars, desc = excluded.desc, lang = excluded.lang,
        url = excluded.url, tags = excluded.tags, updated_at = datetime('now')`
   );
-  let added = 0, updated = 0;
+  const setClone = db.prepare(
+    "UPDATE skills SET cloned = ?, clone_path = COALESCE(NULLIF(clone_path,''), ?), updated_at = datetime('now') WHERE full_name = ?"
+  );
+  let added = 0, updated = 0, clonedMarked = 0;
   const names = new Set();
   for (const s of skills) {
     if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(s.full_name || '')) continue;
@@ -89,8 +94,18 @@ function importJson(db, { prune = false } = {}) {
       String(s.desc || ''),
       String(s.lang || ''),
       String(s.url || `https://github.com/${s.full_name}`),
-      JSON.stringify(Array.isArray(s.tags) ? s.tags : [])
+      JSON.stringify(Array.isArray(s.tags) ? s.tags : []),
+      s.cloned ? 1 : 0
     );
+    if (s.cloned) {
+      // 同步 clone 标记 + 约定路径（~/Code/skills-registry/{owner}-{repo}）
+      const dir = path.join(
+        process.env.SKILLS_REGISTRY || path.join(os.homedir(), 'Code', 'skills-registry'),
+        s.full_name.replace('/', '-')
+      );
+      setClone.run(1, dir, s.full_name);
+      clonedMarked++;
+    }
   }
   if (prune) {
     const before = db.prepare('SELECT COUNT(*) n FROM skills').get().n;
@@ -102,7 +117,8 @@ function importJson(db, { prune = false } = {}) {
     console.log(`prune: ${before - after} 条已删除`);
   }
   const total = db.prepare('SELECT COUNT(*) n FROM skills').get().n;
-  console.log(`import 完成：新增 ${added}、更新 ${updated} → db 共 ${total} 条`);
+  console.log(`import 完成：新增 ${added}、更新 ${updated}，标记 clone ${clonedMarked} 个 → db 共 ${total} 条`);
+  console.log('提示: 已标记 clone 的仓库如需拉取文件，执行 npm run clone-all 批量克隆');
   return { total };
 }
 

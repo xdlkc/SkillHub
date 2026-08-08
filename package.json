@@ -14,6 +14,7 @@
     "export": "node scripts/sync.mjs export",
     "import": "node scripts/sync.mjs import",
     "import:prune": "node scripts/sync.mjs import --prune",
+    "clone-all": "node scripts/clone-all.mjs",
     "server": "node server/index.mjs"
   },
   "dependencies": {

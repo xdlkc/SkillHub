@@ -51,6 +51,10 @@ export const api = {
     }),
   installAll: (repo_id: number, agents: string[]) =>
     req<InstallAllResult>(`/api/repos/${repo_id}/install-all`, { method: 'POST', body: JSON.stringify({ agents }) }),
+  cloneAll: () =>
+    req<{ total: number; ok: number; skipped: number; failed: { full_name: string; error: string }[] }>('/api/clone-all', {
+      method: 'POST',
+    }),
   installed: (agent?: string) =>
     req<{ items: InstalledItem[] }>(`/api/installed${agent ? `?agent=${agent}` : ''}`).then((r) => r.items),
   installItem: (repo_id: number, path: string, agent: string, update = false) =>

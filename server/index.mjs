@@ -514,6 +514,32 @@ const server = createServer(async (req, res) => {
       }
     }
 
+    /* 批量 clone：按同步的 clone 标记拉取缺失仓库 */
+    if (method === 'POST' && p === '/api/clone-all') {
+      const rows = db.prepare("SELECT id, full_name, clone_path FROM skills WHERE cloned = 1").all();
+      let ok = 0, skipped = 0;
+      const failed = [];
+      const results = [];
+      for (const row of rows) {
+        const dir = row.clone_path || cloneDirFor(row.full_name);
+        if (fs.existsSync(dir) && fs.existsSync(path.join(dir, '.git'))) {
+          skipped++;
+          results.push({ full_name: row.full_name, status: 'skipped' });
+          continue;
+        }
+        try {
+          await doClone(row.full_name, dir);
+          db.prepare("UPDATE skills SET cloned = 1, clone_path = ?, updated_at = datetime('now') WHERE id = ?").run(dir, row.id);
+          ok++;
+          results.push({ full_name: row.full_name, status: 'cloned' });
+        } catch (e) {
+          failed.push({ full_name: row.full_name, error: e.message.split('\n')[0] });
+          results.push({ full_name: row.full_name, status: 'failed', error: e.message.split('\n')[0] });
+        }
+      }
+      return send(res, 200, { total: rows.length, ok, skipped, failed, results });
+    }
+
     /* agents 列表（含本机安装探测） */
     if (method === 'GET' && p === '/api/agents') {
       return send(res, 200, { agents: getAgents(), home: AGENTS_HOME });

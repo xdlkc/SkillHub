@@ -128,6 +128,16 @@ export default function App() {
       showToast((e as Error).message, true);
     }
   };
+  const handleCloneAll = async () => {
+    try {
+      const r = await api.cloneAll();
+      await load();
+      const msg = `批量 clone 完成：新克隆 ${r.ok}，跳过 ${r.skipped}${r.failed.length ? `，失败 ${r.failed.length}` : ''}`;
+      showToast(msg, r.failed.length > 0);
+    } catch (e) {
+      showToast((e as Error).message, true);
+    }
+  };
 
   const copy = useCallback(async (t: string) => {
     try {
@@ -174,6 +184,7 @@ export default function App() {
               <a key={t.key} href={`#${t.href}`} className={tab === t.key ? 'active' : ''}>{t.label}</a>
             ))}
             <button onClick={() => setImportOpen(true)} style={{ color: 'var(--acid)' }}>⚡ 导入</button>
+            <button onClick={handleCloneAll} title="按同步的 clone 标记批量拉取仓库">⧉ 批量 clone</button>
             <button onClick={handleRescan}>⟳ 扫描 clone</button>
           </nav>
         </div>

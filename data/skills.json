@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-08-08T16:58:04.671Z",
+  "exported_at": "2026-08-08T17:06:01.802Z",
   "skills": [
     {
       "full_name": "obra/superpowers",
@@ -10,7 +10,8 @@
       "url": "https://github.com/obra/superpowers",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": true
     },
     {
       "full_name": "affaan-m/ECC",
@@ -22,7 +23,8 @@
         "security",
         "research",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "mattpocock/skills",
@@ -32,7 +34,8 @@
       "url": "https://github.com/mattpocock/skills",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "multica-ai/andrej-karpathy-skills",
@@ -42,7 +45,8 @@
       "url": "https://github.com/multica-ai/andrej-karpathy-skills",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "anthropics/skills",
@@ -52,7 +56,8 @@
       "url": "https://github.com/anthropics/skills",
       "tags": [
         "official"
-      ]
+      ],
+      "cloned": true
     },
     {
       "full_name": "Graphify-Labs/graphify",
@@ -62,7 +67,8 @@
       "url": "https://github.com/Graphify-Labs/graphify",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "JuliusBrussee/caveman",
@@ -72,7 +78,8 @@
       "url": "https://github.com/JuliusBrussee/caveman",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "addyosmani/agent-skills",
@@ -82,7 +89,8 @@
       "url": "https://github.com/addyosmani/agent-skills",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "ComposioHQ/awesome-claude-skills",
@@ -93,7 +101,8 @@
       "tags": [
         "collection",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "mvanhorn/last30days-skill",
@@ -103,7 +112,8 @@
       "url": "https://github.com/mvanhorn/last30days-skill",
       "tags": [
         "research"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "hesreallyhim/awesome-claude-code",
@@ -114,7 +124,8 @@
       "tags": [
         "collection",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "VoltAgent/awesome-openclaw-skills",
@@ -126,7 +137,8 @@
         "official",
         "collection",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "zhayujie/CowAgent",
@@ -137,7 +149,8 @@
       "tags": [
         "tool",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "calesthio/OpenMontage",
@@ -147,7 +160,8 @@
       "url": "https://github.com/calesthio/OpenMontage",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "sickn33/agentic-awesome-skills",
@@ -158,7 +172,8 @@
       "tags": [
         "collection",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "kepano/obsidian-skills",
@@ -170,7 +185,8 @@
         "design",
         "tool",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "coreyhaines31/marketingskills",
@@ -180,7 +196,8 @@
       "url": "https://github.com/coreyhaines31/marketingskills",
       "tags": [
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "Imbad0202/academic-research-skills",
@@ -191,7 +208,8 @@
       "tags": [
         "research",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "github/awesome-copilot",
@@ -201,7 +219,8 @@
       "url": "https://github.com/github/awesome-copilot",
       "tags": [
         "official"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "Yuan1z0825/nature-skills",
@@ -212,7 +231,8 @@
       "tags": [
         "research",
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "K-Dense-AI/scientific-agent-skills",
@@ -223,7 +243,8 @@
       "tags": [
         "collection",
         "research"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "alchaincyf/nuwa-skill",
@@ -233,7 +254,8 @@
       "url": "https://github.com/alchaincyf/nuwa-skill",
       "tags": [
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "vercel-labs/agent-skills",
@@ -244,7 +266,8 @@
       "tags": [
         "official",
         "collection"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "VoltAgent/awesome-agent-skills",
@@ -256,7 +279,8 @@
         "official",
         "collection",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "vercel-labs/skills",
@@ -267,7 +291,8 @@
       "tags": [
         "official",
         "tool"
-      ]
+      ],
+      "cloned": true
     },
     {
       "full_name": "mukul975/Anthropic-Cybersecurity-Skills",
@@ -278,7 +303,8 @@
       "tags": [
         "security",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "emilkowalski/skills",
@@ -288,7 +314,8 @@
       "url": "https://github.com/emilkowalski/skills",
       "tags": [
         "design"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "OthmanAdi/planning-with-files",
@@ -298,7 +325,8 @@
       "url": "https://github.com/OthmanAdi/planning-with-files",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "phuryn/pm-skills",
@@ -308,7 +336,8 @@
       "url": "https://github.com/phuryn/pm-skills",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "JimLiu/baoyu-skills",
@@ -318,7 +347,8 @@
       "url": "https://github.com/JimLiu/baoyu-skills",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "openai/skills",
@@ -329,7 +359,8 @@
       "tags": [
         "official",
         "collection"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "alirezarezvani/claude-skills",
@@ -341,7 +372,8 @@
         "research",
         "tool",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "agentskills/agentskills",
@@ -351,7 +383,8 @@
       "url": "https://github.com/agentskills/agentskills",
       "tags": [
         "official"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "Donchitos/Claude-Code-Game-Studios",
@@ -361,7 +394,8 @@
       "url": "https://github.com/Donchitos/Claude-Code-Game-Studios",
       "tags": [
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "op7418/guizang-ppt-skill",
@@ -371,7 +405,8 @@
       "url": "https://github.com/op7418/guizang-ppt-skill",
       "tags": [
         "design"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "alchaincyf/huashu-design",
@@ -382,7 +417,8 @@
       "tags": [
         "design",
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "Nutlope/hallmark",
@@ -392,7 +428,8 @@
       "url": "https://github.com/Nutlope/hallmark",
       "tags": [
         "design"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "titanwings/colleague-skill",
@@ -402,7 +439,8 @@
       "url": "https://github.com/titanwings/colleague-skill",
       "tags": [
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "zhaoxuya520/reverse-skill",
@@ -415,7 +453,8 @@
         "research",
         "tool",
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "webadderallorg/Recordly",
@@ -425,7 +464,8 @@
       "url": "https://github.com/webadderallorg/Recordly",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "KKKKhazix/khazix-skills",
@@ -436,7 +476,8 @@
       "tags": [
         "collection",
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "tanweai/pua",
@@ -446,7 +487,8 @@
       "url": "https://github.com/tanweai/pua",
       "tags": [
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "teng-lin/notebooklm-py",
@@ -458,7 +500,8 @@
         "design",
         "tool",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "virgiliojr94/book-to-skill",
@@ -468,7 +511,8 @@
       "url": "https://github.com/virgiliojr94/book-to-skill",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "ayghri/i-have-adhd",
@@ -478,7 +522,8 @@
       "url": "https://github.com/ayghri/i-have-adhd",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "muratcankoylan/Agent-Skills-for-Context-Engineering",
@@ -489,7 +534,8 @@
       "tags": [
         "collection",
         "design"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "google/skills",
@@ -499,7 +545,8 @@
       "url": "https://github.com/google/skills",
       "tags": [
         "official"
-      ]
+      ],
+      "cloned": true
     },
     {
       "full_name": "larksuite/cli",
@@ -512,7 +559,8 @@
         "design",
         "tool",
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "microsoft/SkillOpt",
@@ -522,7 +570,8 @@
       "url": "https://github.com/microsoft/SkillOpt",
       "tags": [
         "official"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "composio-community/awesome-codex-skills",
@@ -533,7 +582,8 @@
       "tags": [
         "collection",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "hardikpandya/stop-slop",
@@ -543,7 +593,8 @@
       "url": "https://github.com/hardikpandya/stop-slop",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "yusufkaraaslan/Skill_Seekers",
@@ -553,7 +604,8 @@
       "url": "https://github.com/yusufkaraaslan/Skill_Seekers",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "travisvn/awesome-claude-skills",
@@ -564,7 +616,8 @@
       "tags": [
         "collection",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "NVIDIA/SkillSpector",
@@ -576,7 +629,8 @@
         "official",
         "security",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "AgriciDaniel/claude-seo",
@@ -586,7 +640,8 @@
       "url": "https://github.com/AgriciDaniel/claude-seo",
       "tags": [
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "MiniMax-AI/skills",
@@ -596,7 +651,8 @@
       "url": "https://github.com/MiniMax-AI/skills",
       "tags": [
         "official"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "greensock/gsap-skills",
@@ -606,7 +662,8 @@
       "url": "https://github.com/greensock/gsap-skills",
       "tags": [
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "earthtojake/text-to-cad",
@@ -617,7 +674,8 @@
       "tags": [
         "collection",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "Orchestra-Research/AI-Research-SKILLs",
@@ -629,7 +687,8 @@
         "collection",
         "research",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "Jeffallan/claude-skills",
@@ -639,7 +698,8 @@
       "url": "https://github.com/Jeffallan/claude-skills",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "huggingface/skills",
@@ -649,7 +709,8 @@
       "url": "https://github.com/huggingface/skills",
       "tags": [
         "official"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "numman-ali/openskills",
@@ -659,7 +720,8 @@
       "url": "https://github.com/numman-ali/openskills",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "ConardLi/garden-skills",
@@ -670,7 +732,8 @@
       "tags": [
         "collection",
         "design"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "alchaincyf/zhangxuefeng-skill",
@@ -680,7 +743,8 @@
       "url": "https://github.com/alchaincyf/zhangxuefeng-skill",
       "tags": [
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "BehiSecc/awesome-claude-skills",
@@ -690,7 +754,8 @@
       "url": "https://github.com/BehiSecc/awesome-claude-skills",
       "tags": [
         "collection"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "freestylefly/awesome-gpt-image-2",
@@ -700,7 +765,8 @@
       "url": "https://github.com/freestylefly/awesome-gpt-image-2",
       "tags": [
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "slavingia/skills",
@@ -710,7 +776,8 @@
       "url": "https://github.com/slavingia/skills",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "dontbesilent2025/dbskill",
@@ -720,7 +787,8 @@
       "url": "https://github.com/dontbesilent2025/dbskill",
       "tags": [
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "openclaw/clawhub",
@@ -730,7 +798,8 @@
       "url": "https://github.com/openclaw/clawhub",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "eze-is/web-access",
@@ -740,7 +809,8 @@
       "url": "https://github.com/eze-is/web-access",
       "tags": [
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "nexu-io/html-anything",
@@ -750,7 +820,8 @@
       "url": "https://github.com/nexu-io/html-anything",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "Imbad0202/academic-research-skills-codex",
@@ -762,7 +833,8 @@
         "research",
         "design",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "google-labs-code/stitch-skills",
@@ -775,7 +847,8 @@
         "collection",
         "design",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "AgriciDaniel/claude-ads",
@@ -785,7 +858,8 @@
       "url": "https://github.com/AgriciDaniel/claude-ads",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "lewislulu/html-ppt-skill",
@@ -795,7 +869,8 @@
       "url": "https://github.com/lewislulu/html-ppt-skill",
       "tags": [
         "design"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "PleasePrompto/notebooklm-skill",
@@ -806,7 +881,8 @@
       "tags": [
         "collection",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "jnMetaCode/superpowers-zh",
@@ -817,7 +893,8 @@
       "tags": [
         "tool",
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "Agents365-ai/drawio-skill",
@@ -828,7 +905,8 @@
       "tags": [
         "design",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "ibelick/ui-skills",
@@ -838,7 +916,8 @@
       "url": "https://github.com/ibelick/ui-skills",
       "tags": [
         "design"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "NomaDamas/k-skill",
@@ -848,7 +927,8 @@
       "url": "https://github.com/NomaDamas/k-skill",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "lijigang/ljg-skills",
@@ -858,7 +938,8 @@
       "url": "https://github.com/lijigang/ljg-skills",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "SimoneAvogadro/android-reverse-engineering-skill",
@@ -868,7 +949,8 @@
       "url": "https://github.com/SimoneAvogadro/android-reverse-engineering-skill",
       "tags": [
         "security"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "android/skills",
@@ -878,7 +960,8 @@
       "url": "https://github.com/android/skills",
       "tags": [
         "official"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "kangarooking/cangjie-skill",
@@ -888,7 +971,8 @@
       "url": "https://github.com/kangarooking/cangjie-skill",
       "tags": [
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "trailofbits/skills",
@@ -900,7 +984,8 @@
         "official",
         "security",
         "research"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "deanpeters/Product-Manager-Skills",
@@ -911,7 +996,8 @@
       "tags": [
         "design",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "op7418/guizang-social-card-skill",
@@ -921,7 +1007,8 @@
       "url": "https://github.com/op7418/guizang-social-card-skill",
       "tags": [
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "wbh604/UZI-Skill",
@@ -931,7 +1018,8 @@
       "url": "https://github.com/wbh604/UZI-Skill",
       "tags": [
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "heilcheng/awesome-agent-skills",
@@ -941,7 +1029,8 @@
       "url": "https://github.com/heilcheng/awesome-agent-skills",
       "tags": [
         "design"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "czlonkowski/n8n-skills",
@@ -952,7 +1041,8 @@
       "tags": [
         "design",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "therealXiaomanChu/ex-skill",
@@ -962,7 +1052,8 @@
       "url": "https://github.com/therealXiaomanChu/ex-skill",
       "tags": [
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "Master-cai/Research-Paper-Writing-Skills",
@@ -974,7 +1065,8 @@
         "collection",
         "research",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "uditgoenka/autoresearch",
@@ -984,7 +1076,8 @@
       "url": "https://github.com/uditgoenka/autoresearch",
       "tags": [
         "research"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "jacob-bd/gemini-notebook-mcp-cli",
@@ -994,7 +1087,8 @@
       "url": "https://github.com/jacob-bd/gemini-notebook-mcp-cli",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "antfu/skills",
@@ -1004,7 +1098,8 @@
       "url": "https://github.com/antfu/skills",
       "tags": [
         "collection"
-      ]
+      ],
+      "cloned": true
     },
     {
       "full_name": "joeseesun/qiaomu-anything-to-notebooklm",
@@ -1015,7 +1110,8 @@
       "tags": [
         "design",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "FlorianBruniaux/claude-code-ultimate-guide",
@@ -1025,7 +1121,8 @@
       "url": "https://github.com/FlorianBruniaux/claude-code-ultimate-guide",
       "tags": [
         "design"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "google/agents-cli",
@@ -1036,7 +1133,8 @@
       "tags": [
         "official",
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "alchaincyf/darwin-skill",
@@ -1047,7 +1145,8 @@
       "tags": [
         "research",
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "zarazhangrui/codebase-to-course",
@@ -1057,7 +1156,8 @@
       "url": "https://github.com/zarazhangrui/codebase-to-course",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "browser-act/skills",
@@ -1070,7 +1170,8 @@
         "design",
         "tool",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "anysearch-ai/anysearch-skill",
@@ -1080,7 +1181,8 @@
       "url": "https://github.com/anysearch-ai/anysearch-skill",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "0xNyk/awesome-hermes-agent",
@@ -1093,7 +1195,8 @@
         "design",
         "tool",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "worldwonderer/oh-story-claudecode",
@@ -1103,7 +1206,8 @@
       "url": "https://github.com/worldwonderer/oh-story-claudecode",
       "tags": [
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "HKUSTDial/Supervisor-Skills",
@@ -1114,7 +1218,8 @@
       "tags": [
         "research",
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "dotnet/skills",
@@ -1124,7 +1229,8 @@
       "url": "https://github.com/dotnet/skills",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "tech-leads-club/agent-skills",
@@ -1134,7 +1240,8 @@
       "url": "https://github.com/tech-leads-club/agent-skills",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "RyanFitzgerald/devportfolio",
@@ -1144,7 +1251,8 @@
       "url": "https://github.com/RyanFitzgerald/devportfolio",
       "tags": [
         "design"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "anbeime/skill",
@@ -1154,7 +1262,8 @@
       "url": "https://github.com/anbeime/skill",
       "tags": [
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "libukai/awesome-agent-skills",
@@ -1166,7 +1275,8 @@
         "design",
         "tool",
         "zh"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "OpenSenseNova/SenseNova-Skills",
@@ -1176,7 +1286,8 @@
       "url": "https://github.com/OpenSenseNova/SenseNova-Skills",
       "tags": [
         "design"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "chuspeeism/dashi-ppt-skill",
@@ -1187,7 +1298,8 @@
       "tags": [
         "design",
         "domain"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "iflytek/skillhub",
@@ -1197,7 +1309,8 @@
       "url": "https://github.com/iflytek/skillhub",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "eastlondoner/vibe-tools",
@@ -1207,7 +1320,8 @@
       "url": "https://github.com/eastlondoner/vibe-tools",
       "tags": [
         "tool"
-      ]
+      ],
+      "cloned": false
     },
     {
       "full_name": "handsomestWei/patent-disclosure-skill",
@@ -1218,7 +1332,8 @@
       "tags": [
         "domain",
         "zh"
-      ]
+      ],
+      "cloned": false
     }
   ]
 }

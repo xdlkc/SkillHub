@@ -8,20 +8,21 @@
 git clone https://github.com/xdlkc/skills-leaderboard.git   # 私有仓库需已配置 GitHub 认证
 cd skills-leaderboard
 npm install          # 安装前端依赖
-npm run import       # 从同步的 data/skills.json 导入列表（无需 seed）
+npm run import       # 从同步的 data/skills.json 导入列表 + clone 标记（无需 seed）
+npm run clone-all    # 【可选】按同步的 clone 标记批量拉取所有已标记仓库
 npm run dev:all      # 同时启动后端(:8787) + 前端(:5173)
 ```
 
-打开 http://localhost:5173 。**不需要 clone 所有 skill 仓库**——列表已在 `data/skills.json`，页面上对需要的仓库点「⧉ clone 到本地」即可按需拉取。
+打开 http://localhost:5173 。**不需要手动一个个 clone**——列表和 clone 标记已同步在 `data/skills.json`，执行 `npm run clone-all` 即可把另一台机器上已 clone 的仓库全部拉下来（已有目录自动跳过）。
 
 ## 🔄 多机同步（pull / push）
 
-> 设计：**`data/skills.json` 是 git 跟踪的同步载体**（只含共享元数据：名称/Star/描述/语言/标签）；SQLite（`data/skills.db`）是本地运行缓存，不入 git；skill 仓库 clone 在 `~/Code/skills-registry/`，也不入 git。
+> 设计：**`data/skills.json` 是 git 跟踪的同步载体**（共享元数据：名称/Star/描述/语言/标签 + **clone 布尔标记**，不含本地绝对路径）；SQLite（`data/skills.db`）是本地运行缓存，不入 git；skill 仓库 clone 在 `~/Code/skills-registry/`，也不入 git。
 
 **本机修改列表后（录入/打标/删除/更新 Star 等）→ 推送到远端：**
 
 ```bash
-npm run export                       # db → data/skills.json
+npm run export                       # db → data/skills.json（含 clone 标记）
 git add data/skills.json
 git commit -m "sync: 更新列表"
 git push
@@ -31,12 +32,13 @@ git push
 
 ```bash
 git pull
-npm run import                       # skills.json → db（upsert，不删本地）
+npm run import                       # skills.json → db（upsert + clone 标记，不删本地）
+npm run clone-all                    # 按同步的 clone 标记批量拉取缺失仓库（已存在自动跳过）
 # 想完全以远端为准（删除本地多余条目）：
 npm run import:prune
 ```
 
-> 页面内对列表的修改（录入/打标/删除）即时写入本地 SQLite，**记得 `npm run export` 后再 push** 才能同步到对端。
+> 页面内对列表的修改（录入/打标/删除/clone）即时写入本地 SQLite，**记得 `npm run export` 后再 push** 才能同步到对端。页面顶部的「⧉ 批量 clone」按钮等价于 `npm run clone-all`。
 
 ## 技术栈
 
