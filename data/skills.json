@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exported_at": "2026-08-08T17:10:32.810Z",
+  "exported_at": "2026-08-08T17:10:54.160Z",
   "skills": [
     {
       "full_name": "obra/superpowers",
@@ -1099,8 +1099,7 @@
       "tags": [
         "tool",
         "zh",
-        "official",
-        "sync-test"
+        "official"
       ],
       "cloned": true
     },
