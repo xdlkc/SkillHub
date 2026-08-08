@@ -47,6 +47,15 @@ npm run import:prune
 
 ## 快速开始（开发）
 
+```bash
+npm install          # 安装依赖（仅前端，后端零依赖）
+npm run seed         # （可选）导入内置 115 条种子数据
+npm run dev:all      # 前后端一起启动
+# 或分开：npm run dev:server（后端 :8787）+ npm run dev（前端 :5173）
+```
+
+> 环境变量：`SKILLS_REGISTRY`（clone 目录，默认 `~/Code/skills-registry`）、`AGENTS_HOME`（agent 安装探测基准，测试用）、`AUTO_SYNC`（自动同步开关，默认开）、`PORT`（后端端口，默认 8787）
+
 ## 页面导航（Hash 路由）
 
 | 页面 | 地址 | 说明 |
