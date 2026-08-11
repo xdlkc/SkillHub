@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Agent Skills 仓库管理后台：排行榜 + 录入/打标/删除 + clone 统一管理",
   "scripts": {
-    "test": "node --test test/*.test.mjs",
+    "test": "node --experimental-strip-types --test test/*.test.mjs",
     "dev": "vite",
     "dev:server": "node server/index.mjs",
     "dev:all": "node scripts/dev.mjs",
