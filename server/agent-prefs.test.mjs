@@ -57,7 +57,7 @@ describe('getAgentsWithPreferences', () => {
 
 it('targets only installed and enabled Agents for implicit installation', () => {
   const db = createDb();
-  db.prepare('INSERT INTO agent_prefs (agent, enabled) VALUES (?, ?)').run('cursor', 1);
+  db.prepare('INSERT INTO agent_prefs (agent, enabled) VALUES (?, ?)').run('cursor', 0);
 
-  expect(enabledInstalledAgentIds(db, agents)).toEqual(['claude-code', 'cursor']);
+  expect(enabledInstalledAgentIds(db, agents)).toEqual(['claude-code']);
 });
