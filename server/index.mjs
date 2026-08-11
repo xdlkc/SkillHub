@@ -25,6 +25,12 @@ import {
   AGENTS_HOME, getAgents, findAgent, listAllInstalled, listInstalled, installSkill, uninstallSkill, diffDirs,
   agentSkillDir, sanitizeName,
 } from './agents.mjs';
+import {
+  AgentPreferenceError,
+  enabledInstalledAgentIds,
+  getAgentsWithPreferences,
+  updateAgentPreferences,
+} from './agent-prefs.mjs';
 
 // Node 22 下 node:sqlite 会打印 ExperimentalWarning，屏蔽噪音
 process.removeAllListeners('warning');
@@ -584,8 +590,7 @@ const server = createServer(async (req, res) => {
         if (Array.isArray(b.agents)) {
           requested = b.agents.map(String);
         } else {
-          const disabled = new Set(db.prepare('SELECT agent FROM agent_prefs WHERE enabled = 0').all().map((r) => r.agent));
-          requested = getAgents().filter((a) => a.installed && !disabled.has(a.id)).map((a) => a.id);
+          requested = enabledInstalledAgentIds(db, getAgents());
         }
         const finalName = (base) => installedSkillName(row, base, b.prefix, b.sep);
         const results = [];
@@ -645,14 +650,24 @@ const server = createServer(async (req, res) => {
       return send(res, 200, { total: rows.length, ok, skipped, failed, results });
     }
 
-    /* agents 列表（含本机安装探测） */
+    /* agents 列表（含本机安装探测与启用偏好） */
     if (method === 'GET' && p === '/api/agents') {
-      const prefs = new Map(db.prepare('SELECT agent, enabled FROM agent_prefs').all().map((r) => [r.agent, !!r.enabled]));
-      const agents = getAgents().map((agent) => ({
-        ...agent,
-        enabled: prefs.has(agent.id) ? prefs.get(agent.id) : true,
-      }));
+      const agents = getAgentsWithPreferences(db, getAgents());
       return send(res, 200, { agents, home: AGENTS_HOME });
+    }
+
+    /* 批量更新 agent 启用偏好 */
+    if (method === 'PATCH' && p === '/api/agents') {
+      const body = await readBody(req);
+      try {
+        const result = updateAgentPreferences(db, body, getAgents());
+        return send(res, 200, result);
+      } catch (error) {
+        if (error instanceof AgentPreferenceError) {
+          return send(res, error.status, { error: error.message });
+        }
+        throw error;
+      }
     }
 
     /* agent 启用偏好 */
