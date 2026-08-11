@@ -15,6 +15,12 @@ const GIT_ENV_OVERRIDES = new Set([
   'GIT_ALTERNATE_OBJECT_DIRECTORIES',
   'GIT_NAMESPACE',
   'GIT_PREFIX',
+  'GIT_REPLACE_REF_BASE',
+  'GIT_NO_REPLACE_OBJECTS',
+  'GIT_LITERAL_PATHSPECS',
+  'GIT_GLOB_PATHSPECS',
+  'GIT_NOGLOB_PATHSPECS',
+  'GIT_ICASE_PATHSPECS',
   'GIT_CONFIG',
   'GIT_CONFIG_GLOBAL',
   'GIT_CONFIG_SYSTEM',
@@ -31,6 +37,8 @@ function sanitizedGitEnv() {
       || /^GIT_CONFIG_(?:KEY|VALUE)_/.test(key)
     ) delete env[key];
   }
+  env.GIT_NO_REPLACE_OBJECTS = '1';
+  env.GIT_LITERAL_PATHSPECS = '1';
   return env;
 }
 
@@ -40,6 +48,7 @@ function createGitRunner(runProcess, timeout) {
     '-c', `core.hooksPath=${os.devNull}`,
     '-c', 'commit.gpgSign=false',
     '-c', 'push.gpgSign=false',
+    '--no-replace-objects',
     ...args,
   ], {
     encoding: 'utf8',
@@ -111,7 +120,6 @@ async function runMetadataGitSync({
       projectRoot,
       ['status', '--porcelain', '--', METADATA_PATH],
     )).stdout.trim();
-    if (!metadataStatus) return { pushed: false, reason: 'no-change' };
 
     const branch = await optionalGit(git, projectRoot, ['symbolic-ref', '--quiet', '--short', 'HEAD']);
     const remote = branch
@@ -123,7 +131,6 @@ async function runMetadataGitSync({
     if (!branch || !remote || !mergeRef) {
       return { pushed: false, reason: 'no-upstream' };
     }
-    await git(projectRoot, ['fetch', '--prune', '--quiet', '--no-tags', '--', remote]);
     const upstreamRef = await optionalGit(
       git,
       projectRoot,
@@ -131,6 +138,14 @@ async function runMetadataGitSync({
       [1, 128],
     );
     if (!upstreamRef) return { pushed: false, reason: 'remote-missing' };
+    const preFetchUpstreamOid = await optionalGit(
+      git,
+      projectRoot,
+      ['rev-parse', '--verify', `${upstreamRef}^{commit}`],
+      [1, 128],
+    );
+    if (!preFetchUpstreamOid) return { pushed: false, reason: 'remote-missing' };
+    await git(projectRoot, ['fetch', '--prune', '--quiet', '--no-tags', '--', remote]);
     const expectedUpstreamOid = await optionalGit(
       git,
       projectRoot,
@@ -138,6 +153,9 @@ async function runMetadataGitSync({
       [1, 128],
     );
     if (!expectedUpstreamOid) return { pushed: false, reason: 'remote-missing' };
+    if (expectedUpstreamOid !== preFetchUpstreamOid) {
+      return { pushed: false, reason: 'remote-changed' };
+    }
     if (await isBehindUpstream(git, projectRoot, expectedUpstreamOid)) {
       return { pushed: false, reason: 'behind-upstream' };
     }
@@ -145,35 +163,43 @@ async function runMetadataGitSync({
     if (unsafeAhead) return { pushed: false, reason: `unsafe-ahead: ${unsafeAhead}` };
 
     const preCommitHead = firstLine((await git(projectRoot, ['rev-parse', 'HEAD'])).stdout);
-    const desiredMetadataBlob = firstLine((await git(
-      projectRoot,
-      ['hash-object', '--', METADATA_PATH],
-    )).stdout);
-    await git(projectRoot, [
-      '-c', `user.name=${gitName}`,
-      '-c', `user.email=${gitEmail}`,
-      'commit', '--only', '-m', commitMessage, '--', METADATA_PATH,
-    ]);
-    const candidateHead = firstLine((await git(projectRoot, ['rev-parse', 'HEAD'])).stdout);
-    const candidateParents = firstLine((await git(
-      projectRoot,
-      ['rev-list', '--parents', '-n', '1', candidateHead],
-    )).stdout).split(/\s+/);
-    const candidateMetadataBlob = await optionalGit(
-      git,
-      projectRoot,
-      ['rev-parse', '--verify', `${candidateHead}:${METADATA_PATH}`],
-      [1, 128],
-    );
-    if (
-      candidateHead === preCommitHead
-      || candidateParents.length !== 2
-      || candidateParents[1] !== preCommitHead
-      || candidateMetadataBlob !== desiredMetadataBlob
-    ) {
-      return { pushed: false, reason: 'commit-verification-failed' };
+    let intendedCommit;
+    if (!metadataStatus) {
+      if (preCommitHead === expectedUpstreamOid) {
+        return { pushed: false, reason: 'no-change' };
+      }
+      intendedCommit = preCommitHead;
+    } else {
+      const desiredMetadataBlob = firstLine((await git(
+        projectRoot,
+        ['hash-object', '--', METADATA_PATH],
+      )).stdout);
+      await git(projectRoot, [
+        '-c', `user.name=${gitName}`,
+        '-c', `user.email=${gitEmail}`,
+        'commit', '--only', '-m', commitMessage, '--', METADATA_PATH,
+      ]);
+      const candidateHead = firstLine((await git(projectRoot, ['rev-parse', 'HEAD'])).stdout);
+      const candidateParents = firstLine((await git(
+        projectRoot,
+        ['rev-list', '--parents', '-n', '1', candidateHead],
+      )).stdout).split(/\s+/);
+      const candidateMetadataBlob = await optionalGit(
+        git,
+        projectRoot,
+        ['rev-parse', '--verify', `${candidateHead}:${METADATA_PATH}`],
+        [1, 128],
+      );
+      if (
+        candidateHead === preCommitHead
+        || candidateParents.length !== 2
+        || candidateParents[1] !== preCommitHead
+        || candidateMetadataBlob !== desiredMetadataBlob
+      ) {
+        return { pushed: false, reason: 'commit-verification-failed' };
+      }
+      intendedCommit = candidateHead;
     }
-    const intendedCommit = candidateHead;
     await git(projectRoot, ['fetch', '--prune', '--quiet', '--no-tags', '--', remote]);
     const finalUpstreamOid = await optionalGit(
       git,

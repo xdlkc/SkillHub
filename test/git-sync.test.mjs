@@ -18,6 +18,12 @@ const REDIRECT_ENV_KEYS = new Set([
   'GIT_ALTERNATE_OBJECT_DIRECTORIES',
   'GIT_NAMESPACE',
   'GIT_PREFIX',
+  'GIT_REPLACE_REF_BASE',
+  'GIT_NO_REPLACE_OBJECTS',
+  'GIT_LITERAL_PATHSPECS',
+  'GIT_GLOB_PATHSPECS',
+  'GIT_NOGLOB_PATHSPECS',
+  'GIT_ICASE_PATHSPECS',
   'GIT_CONFIG',
   'GIT_CONFIG_GLOBAL',
   'GIT_CONFIG_SYSTEM',
@@ -177,6 +183,26 @@ test('pushes a metadata-only ahead commit from a prior failed push with the new 
   assert.deepEqual(pushedPaths, ['data/skills.json', 'data/skills.json']);
 });
 
+test('retries a clean metadata-only ahead commit without creating an empty commit', async (t) => {
+  const fixture = await createFixture(t);
+  await write(fixture.work, 'data/skills.json', '{"version":2}\n');
+  await git(fixture.work, 'add', 'data/skills.json');
+  await git(fixture.work, 'commit', '-m', 'auto-sync: prior failed metadata push');
+  const intendedCommit = await git(fixture.work, 'rev-parse', 'HEAD');
+  assert.equal(await git(fixture.work, 'status', '--short'), '');
+
+  const result = await sync(fixture.work);
+
+  assert.equal(result.pushed, true);
+  assert.equal(result.commit, intendedCommit);
+  assert.equal(await git(fixture.work, 'rev-parse', 'HEAD'), intendedCommit);
+  assert.equal(await bareGit(fixture.remote, 'rev-parse', 'refs/heads/main'), intendedCommit);
+  assert.equal(
+    await bareGit(fixture.remote, 'rev-list', '--count', `${fixture.baseSha}..refs/heads/main`),
+    '1',
+  );
+});
+
 test('returns no-change without committing or pushing when metadata is unchanged', async (t) => {
   const fixture = await createFixture(t);
   const localBefore = await git(fixture.work, 'rev-parse', 'HEAD');
@@ -243,6 +269,7 @@ test('fetches and refuses before committing when the local branch is behind upst
   await git(peer, 'add', 'remote-only.txt');
   await git(peer, 'commit', '-m', 'peer: remote work');
   await git(peer, 'push', 'origin', 'main');
+  await git(fixture.work, 'fetch', '--prune', 'origin');
   const remoteHead = await bareGit(fixture.remote, 'rev-parse', 'refs/heads/main');
   await write(fixture.work, 'data/skills.json', '{"version":2}\n');
   const localBefore = await git(fixture.work, 'rev-parse', 'HEAD');
@@ -280,6 +307,46 @@ test('inspects every merge parent so an ahead merge cannot hide unrelated paths'
   assert.equal(await git(fixture.work, 'rev-parse', 'HEAD'), mergeCommit);
   assert.equal(await bareGit(fixture.remote, 'rev-parse', 'refs/heads/main'), upstreamHead);
   assert.equal(await git(fixture.work, 'status', '--short', '--', 'data/skills.json'), 'M data/skills.json');
+});
+
+test('ignores replacement refs that disguise an unrelated ahead commit as metadata-only', async (t) => {
+  const fixture = await createFixture(t);
+  await write(fixture.work, 'notes.txt', 'unrelated committed notes\n');
+  await git(fixture.work, 'add', 'notes.txt');
+  await git(fixture.work, 'commit', '-m', 'user: unrelated ahead commit');
+  const unrelatedCommit = await git(fixture.work, 'rev-parse', 'HEAD');
+
+  await git(fixture.work, 'checkout', '--detach', fixture.baseSha);
+  await write(fixture.work, 'data/skills.json', '{"version":1.5}\n');
+  await git(fixture.work, 'add', 'data/skills.json');
+  await git(fixture.work, 'commit', '-m', 'replacement metadata-only commit');
+  const replacementCommit = await git(fixture.work, 'rev-parse', 'HEAD');
+  await git(fixture.work, 'checkout', 'main');
+  await git(fixture.work, 'replace', unrelatedCommit, replacementCommit);
+
+  assert.equal(
+    await git(
+      fixture.work,
+      'diff-tree', '--no-commit-id', '--name-only', '-r', unrelatedCommit,
+    ),
+    'data/skills.json',
+  );
+  assert.equal(
+    await git(
+      fixture.work,
+      '--no-replace-objects',
+      'diff-tree', '--no-commit-id', '--name-only', '-r', unrelatedCommit,
+    ),
+    'notes.txt',
+  );
+  await write(fixture.work, 'data/skills.json', '{"version":2}\n');
+  const remoteBefore = await bareGit(fixture.remote, 'rev-parse', 'refs/heads/main');
+
+  const result = await sync(fixture.work);
+
+  assert.equal(result.pushed, false);
+  assert.match(result.reason, /unsafe-ahead: .* changes notes\.txt/);
+  assert.equal(await bareGit(fixture.remote, 'rev-parse', 'refs/heads/main'), remoteBefore);
 });
 
 test('disables a malicious post-commit hook and pushes the exact metadata blob', async (t) => {
@@ -327,7 +394,7 @@ exit 0
 
   const result = await sync(fixture.work);
 
-  assert.deepEqual(result, { pushed: false, reason: 'behind-upstream' });
+  assert.deepEqual(result, { pushed: false, reason: 'remote-changed' });
   await assert.rejects(access(markerPath));
 });
 
@@ -411,6 +478,48 @@ test('removes every Git config override/count variable from subprocess environme
   assert.deepEqual([...leaked], []);
 });
 
+test('forces replacement-safe and literal-pathspec controls on every Git subprocess', async (t) => {
+  const fixture = await createFixture(t);
+  await write(fixture.work, 'data/skills.json', '{"version":2}\n');
+  const contaminated = {
+    GIT_REPLACE_REF_BASE: 'refs/malicious-replacements',
+    GIT_NO_REPLACE_OBJECTS: '0',
+    GIT_LITERAL_PATHSPECS: '0',
+    GIT_GLOB_PATHSPECS: '1',
+    GIT_NOGLOB_PATHSPECS: '1',
+    GIT_ICASE_PATHSPECS: '1',
+  };
+  const previous = new Map(Object.keys(contaminated).map((key) => [key, process.env[key]]));
+  Object.assign(process.env, contaminated);
+  const unsafeInvocations = [];
+  const isolatedSync = gitSyncModule.createMetadataGitSync({
+    async runProcess(file, args, options) {
+      if (
+        !args.includes('--no-replace-objects')
+        || options.env.GIT_NO_REPLACE_OBJECTS !== '1'
+        || options.env.GIT_LITERAL_PATHSPECS !== '1'
+        || options.env.GIT_REPLACE_REF_BASE !== undefined
+        || options.env.GIT_GLOB_PATHSPECS !== undefined
+        || options.env.GIT_NOGLOB_PATHSPECS !== undefined
+        || options.env.GIT_ICASE_PATHSPECS !== undefined
+      ) unsafeInvocations.push(args);
+      return execFileAsync(file, args, options);
+    },
+  });
+  let result;
+  try {
+    result = await syncWith(isolatedSync, fixture.work);
+  } finally {
+    for (const [key, value] of previous) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+
+  assert.equal(result.pushed, true);
+  assert.deepEqual(unsafeInvocations, []);
+});
+
 test('refuses when the exact upstream OID changes between the two fetch stages', async (t) => {
   const fixture = await createFixture(t);
   const peer = path.join(fixture.root, 'peer-between-fetches');
@@ -467,6 +576,27 @@ test('uses an exact lease so a remote rewind after the final fetch cannot be ove
 
   assert.equal(result.pushed, false);
   assert.ok(pushArgs.includes(`--force-with-lease=refs/heads/main:${expectedOid}`));
+  assert.equal(await bareGit(fixture.remote, 'rev-parse', 'refs/heads/main'), fixture.baseSha);
+});
+
+test('refuses a remote rewind detected by comparing pre-fetch and fetched tracking OIDs', async (t) => {
+  const fixture = await createFixture(t);
+  await write(fixture.work, 'data/skills.json', '{"version":1.5}\n');
+  await git(fixture.work, 'add', 'data/skills.json');
+  await git(fixture.work, 'commit', '-m', 'previously pushed metadata');
+  await git(fixture.work, 'push', 'origin', 'main');
+  const trackedBeforeFetch = await git(fixture.work, 'rev-parse', 'refs/remotes/origin/main');
+  await bareGit(
+    fixture.remote,
+    'update-ref', 'refs/heads/main', fixture.baseSha, trackedBeforeFetch,
+  );
+  await write(fixture.work, 'data/skills.json', '{"version":2}\n');
+  const localBefore = await git(fixture.work, 'rev-parse', 'HEAD');
+
+  const result = await sync(fixture.work);
+
+  assert.deepEqual(result, { pushed: false, reason: 'remote-changed' });
+  assert.equal(await git(fixture.work, 'rev-parse', 'HEAD'), localBefore);
   assert.equal(await bareGit(fixture.remote, 'rev-parse', 'refs/heads/main'), fixture.baseSha);
 });
 
