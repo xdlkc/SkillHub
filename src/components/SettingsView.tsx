@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../api';
 import type { MetadataAutoSyncSetting } from '../types';
 import { ConfirmDialog } from './Modal';
@@ -12,41 +12,61 @@ export default function SettingsView({
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [confirmEnable, setConfirmEnable] = useState(false);
+  const [feedback, setFeedback] = useState<{ message: string; error: boolean } | null>(null);
+  const readVersionRef = useRef(0);
+  const mountedRef = useRef(false);
+  const savingRef = useRef(false);
 
   const load = useCallback(async () => {
-    setError('');
+    const readVersion = ++readVersionRef.current;
+    if (mountedRef.current) setError('');
     try {
       const result = await api.settings();
+      if (!mountedRef.current || readVersion !== readVersionRef.current) return;
       setSetting(result.metadata_auto_sync);
     } catch (e) {
+      if (!mountedRef.current || readVersion !== readVersionRef.current) return;
       setError((e as Error).message);
     }
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
     void load();
+    return () => {
+      mountedRef.current = false;
+      readVersionRef.current += 1;
+    };
   }, [load]);
 
   const save = async (enabled: boolean) => {
-    if (saving) return;
+    if (savingRef.current) return;
+    savingRef.current = true;
+    readVersionRef.current += 1;
     setSaving(true);
+    setFeedback(null);
     try {
       const result = await api.setMetadataAutoSync(enabled);
+      if (!mountedRef.current) return;
       setSetting(result.metadata_auto_sync);
-      onToast(
-        enabled
-          ? '已开启列表元数据自动同步'
-          : '已关闭列表元数据自动同步，待执行同步已取消'
-      );
+      const message = enabled
+        ? '已开启列表元数据自动同步'
+        : '已关闭列表元数据自动同步，待执行同步已取消';
+      setFeedback({ message, error: false });
+      onToast(message);
     } catch (e) {
-      onToast(`更新设置失败：${(e as Error).message}`, true);
+      if (!mountedRef.current) return;
+      const message = `更新设置失败：${(e as Error).message}`;
+      setFeedback({ message, error: true });
+      onToast(message, true);
     } finally {
-      setSaving(false);
+      savingRef.current = false;
+      if (mountedRef.current) setSaving(false);
     }
   };
 
   const handleToggle = () => {
-    if (!setting || setting.locked || saving) return;
+    if (!setting || setting.locked || savingRef.current) return;
     if (setting.enabled) {
       void save(false);
       return;
@@ -55,7 +75,7 @@ export default function SettingsView({
   };
 
   const handleConfirmEnable = () => {
-    if (saving) return;
+    if (savingRef.current) return;
     setConfirmEnable(false);
     void save(true);
   };
@@ -120,6 +140,15 @@ export default function SettingsView({
               </button>
             </div>
           </div>
+          {feedback && (
+            <div
+              className={`settings-feedback${feedback.error ? ' error' : ''}`}
+              role={feedback.error ? 'alert' : 'status'}
+              aria-live={feedback.error ? 'assertive' : 'polite'}
+            >
+              {feedback.message}
+            </div>
+          )}
         </article>
       )}
 

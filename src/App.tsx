@@ -178,12 +178,20 @@ export default function App() {
       <header>
         <div className="wrap nav">
           <div className="logo" onClick={() => navigate('/')}>
-            <span className="mark">▚</span>SKILLS<b>·INDEX</b>
+            <span className="mark">▚</span>
+            <span className="logo-wordmark">SKILLS<b>·INDEX</b></span>
           </div>
           <div className="spacer" />
           <nav className="nav-links">
             {TABS.map((t) => (
-              <a key={t.key} href={`#${t.href}`} className={tab === t.key ? 'active' : ''}>{t.label}</a>
+              <a
+                key={t.key}
+                href={`#${t.href}`}
+                className={tab === t.key ? 'active' : ''}
+                aria-current={tab === t.key ? 'page' : undefined}
+              >
+                {t.label}
+              </a>
             ))}
             <button onClick={() => setImportOpen(true)} style={{ color: 'var(--acid)' }}>⚡ 导入</button>
             <button onClick={handleCloneAll} title="按同步的 clone 标记批量拉取仓库">⧉ 批量 clone</button>
@@ -287,7 +295,14 @@ export default function App() {
         />
       )}
 
-      <div className={`toast${toast?.error ? ' error' : ''}${toast ? ' show' : ''}`}>{toast?.msg}</div>
+      <div
+        className={`toast${toast?.error ? ' error' : ''}${toast ? ' show' : ''}`}
+        role={toast?.error ? 'alert' : 'status'}
+        aria-live={toast?.error ? 'assertive' : 'polite'}
+        aria-atomic="true"
+      >
+        {toast?.msg}
+      </div>
     </>
   );
 }
