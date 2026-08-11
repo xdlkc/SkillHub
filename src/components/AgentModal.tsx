@@ -18,7 +18,7 @@ export default function AgentModal({
   useEffect(() => {
     Promise.all([api.agents(), api.installed()])
       .then(([a, inst]) => {
-        setAgents(a.agents);
+        setAgents(a.agents.filter((a) => a.enabled));
         setInstalledMap(new Map(inst.map((i) => [`${i.agent}:${i.name}`, true])));
       })
       .catch((e) => setError((e as Error).message));

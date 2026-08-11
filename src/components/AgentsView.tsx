@@ -12,6 +12,8 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [diffMap, setDiffMap] = useState<Map<string, DiffEntry[]>>(new Map());
   const [busy, setBusy] = useState('');
+  const [q, setQ] = useState('');
+  const [facet, setFacet] = useState<'all' | 'present' | 'absent' | 'disabled' | 'has-skills'>('all');
 
   const loadAll = () =>
     Promise.all([api.agents(), api.installed()])
@@ -39,12 +41,38 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
     [agents, byAgent]
   );
 
+  const filteredAgents = useMemo(() => {
+    const query = q.trim().toLowerCase();
+    return sortedAgents.filter((a) => {
+      if (query && !`${a.name}\n${a.id}\n${a.dir}`.toLowerCase().includes(query)) return false;
+      if (facet === 'present') return a.installed;
+      if (facet === 'absent') return !a.installed;
+      if (facet === 'disabled') return !a.enabled;
+      if (facet === 'has-skills') return (byAgent.get(a.id)?.length ?? 0) > 0;
+      return true;
+    });
+  }, [sortedAgents, q, facet, byAgent]);
+
   const toggleAgent = (id: string) =>
     setExpanded((prev) => {
       const n = new Set(prev);
       if (n.has(id)) n.delete(id); else n.add(id);
       return n;
     });
+
+  const toggleEnabled = async (agent: AgentInfo) => {
+    const key = `${agent.id}:enabled`;
+    setBusy(key);
+    try {
+      const result = await api.setAgentEnabled(agent.id, !agent.enabled);
+      setAgents((prev) => prev.map((a) => a.id === agent.id ? { ...a, enabled: result.enabled } : a));
+      onToast(result.enabled ? `已启用 ${agent.name}` : `已禁用 ${agent.name}（不再出现在安装列表）`);
+    } catch (e) {
+      onToast((e as Error).message, true);
+    } finally {
+      setBusy('');
+    }
+  };
 
   const doDiff = async (it: InstalledItem) => {
     if (!it.repo_id || !it.path) { onToast('该 skill 无来源记录，无法 diff', true); return; }
@@ -107,6 +135,13 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
 
   const totalInstalled = installed.length;
   const presentAgents = agents.filter((a) => a.installed);
+  const facetCounts = {
+    all: agents.length,
+    present: presentAgents.length,
+    absent: agents.filter((a) => !a.installed).length,
+    'has-skills': agents.filter((a) => (byAgent.get(a.id)?.length ?? 0) > 0).length,
+    disabled: agents.filter((a) => !a.enabled).length,
+  };
 
   if (loading) return <div className="empty"><div className="big">加载中…</div></div>;
   if (error) return <div className="empty"><div className="big">⚠ ERROR</div>{error}</div>;
@@ -121,15 +156,44 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
         </p>
       </div>
 
+      <div className="toolbar" style={{ marginBottom: 18 }}>
+        <div className="search">
+          <span className="icon">⌕</span>
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="搜索 agent 名称 / id / 目录…"
+          />
+        </div>
+        <div className="filters">
+          {([
+            ['all', '全部'],
+            ['present', '已装 CLI'],
+            ['absent', '未装 CLI'],
+            ['has-skills', '有 skills'],
+            ['disabled', '已禁用'],
+          ] as const).map(([value, label]) => (
+            <span key={value} className={`chip${facet === value ? ' on' : ''}`} onClick={() => setFacet(value)}>
+              {label}<span className="cnt">{facetCounts[value]}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
       <div className="agent-grid">
-        {sortedAgents.map((a) => {
+        {filteredAgents.length === 0 ? (
+          <div className="empty"><div className="big">∅ 无匹配</div>换个关键词或筛选条件试试</div>
+        ) : filteredAgents.map((a) => {
           const list = byAgent.get(a.id) ?? [];
           const open = expanded.has(a.id);
           return (
-            <div className={`agent-card${a.installed ? '' : ' absent'}`} key={a.id}>
+            <div className={`agent-card${a.installed ? '' : ' absent'}`} key={a.id} style={{ opacity: a.enabled ? undefined : 0.45 }}>
               <div className="agent-card-head" onClick={() => toggleAgent(a.id)}>
                 <div className="agent-card-name">
                   {a.name}
+                  {!a.enabled && (
+                    <span className="badge" style={{ color: 'var(--red)', borderColor: 'rgba(255,107,107,0.4)' }}>已禁用</span>
+                  )}
                   {a.installed ? (
                     <span className="clone-tag">✓ {list.length} skills</span>
                   ) : (
@@ -138,6 +202,15 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
                 </div>
                 <div className="agent-card-dir">{a.dir}</div>
                 <div className="agent-card-ops" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    className="btn ghost"
+                    style={{ padding: '4px 10px', fontSize: 11 }}
+                    title={a.enabled ? '禁用后不再出现在安装列表' : '重新启用该 agent'}
+                    disabled={busy === `${a.id}:enabled`}
+                    onClick={() => toggleEnabled(a)}
+                  >
+                    {a.enabled ? '◎ 禁用' : '● 启用'}
+                  </button>
                   {a.installed && list.length > 0 && (
                     <button
                       className="btn" style={{ padding: '4px 10px', fontSize: 11 }}

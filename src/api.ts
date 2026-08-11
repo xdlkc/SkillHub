@@ -44,23 +44,33 @@ export const api = {
   cloneRemove: (id: number) => req<{ ok: true }>(`/api/skills/${id}/clone/remove`, { method: 'POST' }),
   fetchReadme: (id: number) => req<ReadmeData>(`/api/skills/${id}/readme`),
   agents: () => req<{ agents: AgentInfo[]; home: string }>('/api/agents'),
+  setAgentEnabled: (id: string, enabled: boolean) =>
+    req<{ agent: string; enabled: boolean }>(`/api/agents/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ enabled }),
+    }),
+  repoItems: (repo_id: number) =>
+    req<{ items: SkillItem[] }>(`/api/repos/${repo_id}/items`).then((r) => r.items),
   importRepo: (repo: string) =>
     req<{ skill: Skill; imported: boolean; cloned: boolean; clone_error?: string }>('/api/repos/import', {
       method: 'POST',
       body: JSON.stringify({ repo }),
     }),
-  installAll: (repo_id: number, agents: string[]) =>
-    req<InstallAllResult>(`/api/repos/${repo_id}/install-all`, { method: 'POST', body: JSON.stringify({ agents }) }),
+  installAll: (repo_id: number, agents: string[], skills?: string[], prefix?: boolean, sep?: ':' | '-') =>
+    req<InstallAllResult>(`/api/repos/${repo_id}/install-all`, {
+      method: 'POST',
+      body: JSON.stringify({ agents, skills, prefix, sep }),
+    }),
   cloneAll: () =>
     req<{ total: number; ok: number; skipped: number; failed: { full_name: string; error: string }[] }>('/api/clone-all', {
       method: 'POST',
     }),
   installed: (agent?: string) =>
     req<{ items: InstalledItem[] }>(`/api/installed${agent ? `?agent=${agent}` : ''}`).then((r) => r.items),
-  installItem: (repo_id: number, path: string, agent: string, update = false) =>
+  installItem: (repo_id: number, path: string, agent: string, update = false, prefix = false) =>
     req<{ name: string; target: string; existed: boolean; changed: boolean; diff: DiffEntry[] | null }>(
       `/api/skills/items/${update ? 'update' : 'install'}`,
-      { method: 'POST', body: JSON.stringify({ repo_id, path, agent }) }
+      { method: 'POST', body: JSON.stringify({ repo_id, path, agent, prefix }) }
     ),
   uninstallItem: (agent: string, name: string) =>
     req<{ removed: boolean; target: string }>('/api/skills/items/uninstall', {

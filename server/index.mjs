@@ -22,7 +22,8 @@ import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
 import {
-  AGENTS_HOME, getAgents, listAllInstalled, listInstalled, installSkill, uninstallSkill, diffDirs, agentSkillDir,
+  AGENTS_HOME, getAgents, findAgent, listAllInstalled, listInstalled, installSkill, uninstallSkill, diffDirs,
+  agentSkillDir, sanitizeName,
 } from './agents.mjs';
 
 // Node 22 下 node:sqlite 会打印 ExperimentalWarning，屏蔽噪音
@@ -119,6 +120,10 @@ db.exec(`
     path         TEXT NOT NULL,
     installed_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(agent, name)
+  );
+  CREATE TABLE IF NOT EXISTS agent_prefs (
+    agent   TEXT PRIMARY KEY,
+    enabled INTEGER NOT NULL DEFAULT 1
   );
 `);
 
@@ -258,6 +263,15 @@ function scanRepoItems(row) {
     });
   }
   return out.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function installedSkillName(row, name, prefix, sep) {
+  const base = sanitizeName(name);
+  const [ownerPart, repoPart] = row.full_name.split('/');
+  const owner = sanitizeName(ownerPart);
+  const repoName = sanitizeName(repoPart);
+  if (!prefix || base === repoName || base.startsWith(`${owner}-`) || base.startsWith(`${owner}:`)) return base;
+  return `${owner}${sep === '-' ? '-' : ':'}${base}`;
 }
 
 function scanSkillItems() {
@@ -486,6 +500,18 @@ const server = createServer(async (req, res) => {
       return send(res, 200, { items: skillsCache.data, repos: skillsCache.data.length, cached: Date.now() - skillsCache.ts < 1000 });
     }
 
+    /* 单个仓库内的 skill 列表 */
+    const repoItemsMatch = p.match(/^\/api\/repos\/(\d+)\/items$/);
+    if (method === 'GET' && repoItemsMatch) {
+      const row = db.prepare('SELECT * FROM skills WHERE id = ?').get(Number(repoItemsMatch[1]));
+      if (!row) return send(res, 404, { error: 'not found' });
+      const dir = row.clone_path || cloneDirFor(row.full_name);
+      if (!row.cloned || !fs.existsSync(dir)) {
+        return send(res, 400, { error: '该仓库尚未 clone 到本地，请先克隆' });
+      }
+      return send(res, 200, { items: scanRepoItems(row) });
+    }
+
     /* skill 内容预览（校验路径在 clone 目录内） */
     if (method === 'GET' && p === '/api/skill-items/content') {
       const repoId = Number(url.searchParams.get('repo') || 0);
@@ -547,31 +573,43 @@ const server = createServer(async (req, res) => {
         if (!row.cloned || !fs.existsSync(row.clone_path || cloneDirFor(row.full_name))) {
           return send(res, 400, { error: '该仓库尚未 clone 到本地，请先克隆' });
         }
-        const items = scanRepoItems(row);
+        let items = scanRepoItems(row);
+        if (Array.isArray(b.skills) && b.skills.length > 0) {
+          const selected = new Set(b.skills.map(String));
+          items = items.filter((item) => selected.has(item.path));
+          if (items.length === 0) return send(res, 400, { error: '选定的 skills 未在仓库中找到' });
+        }
         if (items.length === 0) return send(res, 400, { error: '该仓库未扫描到 SKILL.md' });
-        const requested = Array.isArray(b.agents) && b.agents.length ? b.agents : getAgents().filter((a) => a.installed).map((a) => a.id);
+        let requested;
+        if (Array.isArray(b.agents)) {
+          requested = b.agents.map(String);
+        } else {
+          const disabled = new Set(db.prepare('SELECT agent FROM agent_prefs WHERE enabled = 0').all().map((r) => r.agent));
+          requested = getAgents().filter((a) => a.installed && !disabled.has(a.id)).map((a) => a.id);
+        }
+        const finalName = (base) => installedSkillName(row, base, b.prefix, b.sep);
         const results = [];
         let ok = 0;
         for (const agent of requested) {
           for (const item of items) {
             const sourceDir = path.join(row.clone_path || cloneDirFor(row.full_name), path.dirname(item.path));
             try {
-              const r = await installSkill(sourceDir, agent);
+              const r = await installSkill(sourceDir, agent, finalName(item.name));
               db.prepare(
                 `INSERT INTO installed_items (agent, name, repo_id, path, installed_at)
                  VALUES (?, ?, ?, ?, datetime('now'))
                  ON CONFLICT(agent, name) DO UPDATE SET repo_id = excluded.repo_id, path = excluded.path, installed_at = datetime('now')`
-              ).run(agent, item.name, row.id, item.path);
-              results.push({ skill: item.name, agent, ok: true, target: r.target, changed: r.changed });
+              ).run(agent, r.name, row.id, item.path);
+              results.push({ skill: r.name, agent, ok: true, target: r.target, changed: r.changed });
               ok++;
             } catch (e) {
-              results.push({ skill: item.name, agent, ok: false, error: e.message });
+              results.push({ skill: finalName(item.name), agent, ok: false, error: e.message });
             }
           }
         }
         return send(res, 200, {
           repo: row.full_name,
-          skills: items.map((i) => i.name),
+          skills: items.map((i) => finalName(i.name)),
           agents: requested,
           total: results.length,
           ok,
@@ -609,7 +647,26 @@ const server = createServer(async (req, res) => {
 
     /* agents 列表（含本机安装探测） */
     if (method === 'GET' && p === '/api/agents') {
-      return send(res, 200, { agents: getAgents(), home: AGENTS_HOME });
+      const prefs = new Map(db.prepare('SELECT agent, enabled FROM agent_prefs').all().map((r) => [r.agent, !!r.enabled]));
+      const agents = getAgents().map((agent) => ({
+        ...agent,
+        enabled: prefs.has(agent.id) ? prefs.get(agent.id) : true,
+      }));
+      return send(res, 200, { agents, home: AGENTS_HOME });
+    }
+
+    /* agent 启用偏好 */
+    const agentPrefMatch = p.match(/^\/api\/agents\/([a-z0-9-]+)$/);
+    if (method === 'PATCH' && agentPrefMatch) {
+      const id = agentPrefMatch[1];
+      try { findAgent(id); } catch { return send(res, 404, { error: '未知 agent' }); }
+      const b = await readBody(req);
+      if (typeof b.enabled !== 'boolean') return send(res, 400, { error: 'enabled 必须是布尔值' });
+      db.prepare(
+        `INSERT INTO agent_prefs (agent, enabled) VALUES (?, ?)
+         ON CONFLICT(agent) DO UPDATE SET enabled = excluded.enabled`
+      ).run(id, b.enabled ? 1 : 0);
+      return send(res, 200, { agent: id, enabled: b.enabled });
     }
 
     /* 已安装 skills 列表（各 agent） */
@@ -645,13 +702,25 @@ const server = createServer(async (req, res) => {
         return send(res, 400, { error: `源目录缺少 SKILL.md: ${rel}` });
       }
       try {
-        const result = await installSkill(sourceDir, String(b.agent || ''));
+        const agent = String(b.agent || '');
+        const scanned = scanRepoItems(row).find((item) => item.path === rel);
+        const baseName = sanitizeName(scanned ? scanned.name : path.basename(sourceDir));
+        let nameOverride = baseName;
+        if (p === '/api/skills/items/update') {
+          const installed = db.prepare(
+            'SELECT name FROM installed_items WHERE agent = ? AND repo_id = ? AND path = ? ORDER BY id DESC LIMIT 1'
+          ).get(agent, row.id, rel);
+          if (installed) nameOverride = installed.name;
+        } else if (b.prefix) {
+          nameOverride = installedSkillName(row, baseName, true, b.sep);
+        }
+        const result = await installSkill(sourceDir, agent, nameOverride);
         // 记录安装来源（用于后续追溯/更新/diff）
         db.prepare(
           `INSERT INTO installed_items (agent, name, repo_id, path, installed_at)
            VALUES (?, ?, ?, ?, datetime('now'))
            ON CONFLICT(agent, name) DO UPDATE SET repo_id = excluded.repo_id, path = excluded.path, installed_at = datetime('now')`
-        ).run(String(b.agent), result.name, row.id, rel);
+        ).run(agent, result.name, row.id, rel);
         return send(res, 200, { ...result, repo: row.full_name });
       } catch (e) {
         return send(res, 500, { error: e.message });
@@ -679,7 +748,11 @@ const server = createServer(async (req, res) => {
       const rel = String(b.path || '').replace(/\\/g, '/');
       const sourceDir = path.resolve(cloneRoot, path.dirname(rel));
       if (!sourceDir.startsWith(cloneRoot + path.sep)) return send(res, 400, { error: 'invalid path' });
-      const target = agentSkillDir(String(b.agent || ''), path.basename(sourceDir));
+      const agent = String(b.agent || '');
+      const installed = db.prepare(
+        'SELECT name FROM installed_items WHERE agent = ? AND repo_id = ? AND path = ? ORDER BY id DESC LIMIT 1'
+      ).get(agent, row.id, rel);
+      const target = agentSkillDir(agent, installed?.name || path.basename(sourceDir));
       if (!fs.existsSync(target)) return send(res, 200, { installed: false, diff: null });
       const diff = await diffDirs(sourceDir, target);
       return send(res, 200, { installed: true, diff });

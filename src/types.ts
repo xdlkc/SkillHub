@@ -34,6 +34,7 @@ export interface AgentInfo {
   name: string;
   dir: string;
   installed: boolean;
+  enabled: boolean;
 }
 
 export interface InstalledItem {

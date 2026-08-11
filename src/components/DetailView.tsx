@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import type { Skill } from '../types';
+import type { Skill, SkillItem } from '../types';
 import { TAG_META } from '../types';
 import { api, fmt } from '../api';
 import { renderMarkdown } from '../markdown';
 import { navigate } from '../router';
 import InstallAllModal from './InstallAllModal';
+import AgentModal from './AgentModal';
 
 interface ReadmeData {
   cloned: boolean;
@@ -33,6 +34,10 @@ export default function DetailView({
   const [expanded, setExpanded] = useState(false);
   const [lastCommit, setLastCommit] = useState('');
   const [installAllOpen, setInstallAllOpen] = useState(false);
+  const [items, setItems] = useState<SkillItem[] | null>(null);
+  const [openItem, setOpenItem] = useState('');
+  const [itemContent, setItemContent] = useState<string | null>(null);
+  const [agentModal, setAgentModal] = useState<SkillItem | null>(null);
   const [owner, repo] = skill.full_name.split('/');
 
   useEffect(() => {
@@ -54,6 +59,38 @@ export default function DetailView({
       .catch(() => { if (alive) setReadme(EMPTY_README); });
     return () => { alive = false; };
   }, [skill.id]);
+
+  useEffect(() => {
+    let alive = true;
+    setItems(null);
+    setOpenItem('');
+    setItemContent(null);
+    setAgentModal(null);
+    if (!skill.cloned) {
+      setItems([]);
+      return () => { alive = false; };
+    }
+    api.repoItems(skill.id)
+      .then((result) => { if (alive) setItems(result); })
+      .catch(() => { if (alive) setItems([]); });
+    return () => { alive = false; };
+  }, [skill.id, skill.cloned]);
+
+  const toggleItem = async (i: SkillItem) => {
+    if (openItem === i.path) {
+      setOpenItem('');
+      setItemContent(null);
+      return;
+    }
+    setOpenItem(i.path);
+    setItemContent(null);
+    try {
+      const result = await api.skillContent(skill.id, i.path);
+      setItemContent(result.content);
+    } catch {
+      setItemContent('');
+    }
+  };
 
   const sameOwner = all.filter((s) => s.full_name.split('/')[0] === owner && s.id !== skill.id).slice(0, 4);
   const sameTag = all
@@ -125,6 +162,56 @@ export default function DetailView({
       <section className="detail-section">
         <h3 className="section-label">SUMMARY</h3>
         <p className="summary-text">{skill.desc || '（无简介）'}</p>
+      </section>
+
+      {/* 仓库内 skills */}
+      <section className="detail-section">
+        <h3 className="section-label">SKILLS · 本仓库{items ? ` ${items.length} 个` : ''}</h3>
+        {!skill.cloned ? (
+          <div className="readme-hint">该仓库尚未 clone 到本地，无法扫描 skills。点击上方「⧉ clone 到本地」。</div>
+        ) : items === null ? (
+          <div className="readme-hint">扫描中…</div>
+        ) : items.length === 0 ? (
+          <div className="readme-hint">未扫描到 SKILL.md</div>
+        ) : (
+          <div className="board" style={{ marginBottom: 0 }}>
+            {items.map((i, index) => (
+              <div key={i.path}>
+                <div
+                  className="skill-item"
+                  style={{ gridTemplateColumns: 'minmax(0,1fr) 70px', animationDelay: `${Math.min(index * 18, 300)}ms` }}
+                >
+                  <div className="skill-main" onClick={() => toggleItem(i)}>
+                    <div className="skill-name">{i.name}</div>
+                    <div className="skill-desc">{i.description || '（无描述）'}</div>
+                    <div className="skill-meta"><span className="skill-path">{i.path}</span></div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <button
+                      className="op clone"
+                      title={`安装 ${i.name} 到 agent`}
+                      onClick={(e) => { e.stopPropagation(); setAgentModal(i); }}
+                    >
+                      ⤓
+                    </button>
+                    <span className="skill-chevron" onClick={() => toggleItem(i)}>{openItem === i.path ? '▴' : '▾'}</span>
+                  </div>
+                </div>
+                {openItem === i.path && (
+                  <div className="skill-detail">
+                    {itemContent === null ? (
+                      <div className="readme-hint">加载中…</div>
+                    ) : itemContent === '' ? (
+                      <div className="readme-hint">（读取失败）</div>
+                    ) : (
+                      <div className="readme" dangerouslySetInnerHTML={{ __html: renderMarkdown(itemContent) }} />
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* 信息卡 */}
@@ -201,6 +288,9 @@ export default function DetailView({
 
       {installAllOpen && (
         <InstallAllModal skill={skill} onClose={() => setInstallAllOpen(false)} onToast={(m, e) => { /* toast 由 App 层处理 */ }} />
+      )}
+      {agentModal && (
+        <AgentModal skill={agentModal} onDone={() => setAgentModal(null)} onClose={() => setAgentModal(null)} />
       )}
     </div>
   );
