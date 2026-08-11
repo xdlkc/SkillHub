@@ -439,6 +439,72 @@ footer a:hover { color: var(--acid); border-color: var(--acid); }
 .faq code { color: var(--acid); }
 .faq a { color: var(--cyan); }
 
+/* ---------- 设置 ---------- */
+.settings-page { max-width: 860px; padding-bottom: 42px; }
+.settings-card {
+  position: relative; overflow: hidden; margin-bottom: 28px; padding: 26px 28px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.24);
+}
+.settings-card::before {
+  content: ""; position: absolute; inset: 0 auto 0 0; width: 2px;
+  background: linear-gradient(180deg, var(--acid), rgba(215, 255, 62, 0.12));
+}
+.settings-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 34px; align-items: start; }
+.settings-copy { min-width: 0; }
+.settings-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 13px; }
+.settings-title h2 { font-family: var(--disp); font-size: 15px; letter-spacing: 0.04em; }
+.settings-title .badge { cursor: default; }
+.settings-title .badge:hover { color: var(--dim); border-color: var(--line2); }
+.badge.ok {
+  color: var(--acid); border-color: rgba(215, 255, 62, 0.4);
+  background: rgba(215, 255, 62, 0.06);
+}
+.settings-title .badge.ok:hover { color: var(--acid); border-color: rgba(215, 255, 62, 0.4); }
+.settings-copy p { max-width: 660px; color: var(--dim); font-size: 13px; line-height: 1.8; }
+.settings-copy code {
+  margin: 0 0.35em; color: var(--acid); font-family: var(--mono); font-size: 0.94em;
+  overflow-wrap: anywhere;
+}
+.settings-scope {
+  margin-top: 14px; padding: 11px 13px; background: var(--panel2);
+  border-left: 2px solid var(--cyan); border-radius: 0 8px 8px 0;
+}
+.settings-locked { margin-top: 12px; color: var(--amber) !important; }
+.settings-control { display: flex; align-items: center; gap: 10px; min-height: 30px; }
+.settings-saving { color: var(--dim2); font-size: 11px; white-space: nowrap; }
+.settings-switch {
+  width: 58px; height: 30px; padding: 2px; border: 1px solid var(--line2); border-radius: 99px;
+  background: #0c0c10; color: inherit; cursor: pointer; outline: none;
+  box-shadow: inset 0 2px 7px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.24);
+  transition: border-color 0.16s, background 0.16s, box-shadow 0.16s, opacity 0.16s;
+}
+.settings-switch-track { display: block; position: relative; width: 100%; height: 100%; }
+.settings-switch-thumb {
+  display: block; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--dim); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.25, 1), background 0.16s;
+}
+.settings-switch[aria-checked="true"] {
+  border-color: rgba(215, 255, 62, 0.55); background: rgba(215, 255, 62, 0.14);
+  box-shadow: inset 0 2px 7px rgba(0, 0, 0, 0.35), 0 0 16px rgba(215, 255, 62, 0.12);
+}
+.settings-switch[aria-checked="true"] .settings-switch-thumb { transform: translateX(28px); background: var(--acid); }
+.settings-switch:hover:not(:disabled) { border-color: var(--acid); }
+.settings-switch:active:not(:disabled) .settings-switch-thumb { transform: translateX(2px) scale(0.94); }
+.settings-switch[aria-checked="true"]:active:not(:disabled) .settings-switch-thumb { transform: translateX(26px) scale(0.94); }
+.settings-switch:focus-visible { box-shadow: 0 0 0 3px rgba(215, 255, 62, 0.18); border-color: var(--acid); }
+.settings-switch:disabled { opacity: 0.46; cursor: not-allowed; }
+.settings-loading { color: var(--dim2); }
+.settings-error { display: flex; justify-content: space-between; align-items: center; gap: 18px; color: var(--red); }
+.settings-error .btn { flex-shrink: 0; }
+@media (max-width: 620px) {
+  .settings-card { padding: 22px 20px; }
+  .settings-row { grid-template-columns: 1fr; gap: 20px; }
+  .settings-control { justify-content: space-between; }
+  .settings-error { align-items: flex-start; flex-direction: column; }
+}
+
 /* ---------- Skills 页（skill 级） ---------- */
 .skill-item {
   display: grid; grid-template-columns: minmax(0, 1fr) 160px 60px; gap: 12px;

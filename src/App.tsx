@@ -13,6 +13,7 @@ import ImportModal from './components/ImportModal';
 import TopicsView from './components/TopicsView';
 import PacksView, { PackView } from './components/PacksView';
 import DocsView from './components/DocsView';
+import SettingsView from './components/SettingsView';
 import SkillForm from './components/SkillForm';
 import TagEditor from './components/TagEditor';
 import { ConfirmDialog } from './components/Modal';
@@ -26,6 +27,7 @@ const TABS: { key: string; label: string; href: string }[] = [
   { key: 'packs', label: 'Packs', href: '/packs' },
   { key: 'official', label: 'Official', href: '/official' },
   { key: 'docs', label: 'Docs', href: '/docs' },
+  { key: 'settings', label: '设置', href: '/settings' },
 ];
 
 export default function App() {
@@ -232,6 +234,7 @@ export default function App() {
         {route.name === 'packs' && <PacksView skills={skills} />}
         {route.name === 'pack' && <PackView owner={route.owner} skills={skills} callbacks={callbacks} />}
         {route.name === 'docs' && <DocsView registry={stats.registry} />}
+        {route.name === 'settings' && <SettingsView onToast={showToast} />}
 
         {route.name === 'skill' && detailSkill && (
           <DetailView
