@@ -49,6 +49,11 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ enabled }),
     }),
+  setAgentsEnabled: (agents: string[], enabled: boolean) =>
+    req<{ agents: string[]; enabled: boolean; updated: number }>('/api/agents', {
+      method: 'PATCH',
+      body: JSON.stringify({ agents, enabled }),
+    }),
   repoItems: (repo_id: number) =>
     req<{ items: SkillItem[] }>(`/api/repos/${repo_id}/items`).then((r) => r.items),
   importRepo: (repo: string) =>
