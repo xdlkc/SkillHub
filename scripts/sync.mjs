@@ -1,12 +1,12 @@
 /**
  * sync.mjs —— 列表数据同步（git 友好载体：data/skills.json）
  *
- *   npm run export          db → skills.json（修改列表后执行，然后 git push）
+ *   npm run export          db → skills.json（修改列表后执行，再 git add/commit/push）
  *   npm run import          skills.json → db（新电脑/对端 git pull 后执行，upsert 不删本地）
  *   npm run import -- --prune  以 json 为准，删除 db 中 json 没有的条目
  *
- * skills.json 只含共享元数据（full_name/stars/desc/lang/url/tags），
- * 不含本地状态（cloned/clone_path/created_at 等），避免跨机冲突。
+ * skills.json 含共享元数据（full_name/stars/desc/lang/url/tags）和 cloned 布尔标记，
+ * 只排除 clone_path、created_at 等机器本地路径/运行状态，避免跨机冲突。
  */
 import { DatabaseSync } from 'node:sqlite';
 import path from 'node:path';
