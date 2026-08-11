@@ -1,5 +1,10 @@
 const SETTING_KEY = 'metadata_auto_sync';
 
+function defaultOnError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`[auto-sync] ${message}`);
+}
+
 export function createAutoSyncController({
   db,
   envValue,
@@ -8,6 +13,7 @@ export function createAutoSyncController({
   delay = 2500,
   schedule = setTimeout,
   cancel = clearTimeout,
+  onError = defaultOnError,
 }) {
   let timer = null;
   let dirty = false;
@@ -49,6 +55,10 @@ export function createAutoSyncController({
   }
 
   function setEnabled(enabled) {
+    if (typeof enabled !== 'boolean') {
+      throw new TypeError('enabled 必须是布尔值。');
+    }
+
     if (getState().locked) {
       const error = new Error(
         '自动同步由 AUTO_SYNC 环境变量锁定，请修改环境变量并重启服务。',
@@ -66,22 +76,26 @@ export function createAutoSyncController({
     return getState();
   }
 
+  async function runPending() {
+    timer = null;
+    if (!dirty) return;
+    if (!getState().enabled) {
+      dirty = false;
+      return;
+    }
+
+    dirty = false;
+    if (!exportNow()) return;
+    await pushNow();
+  }
+
   function markDirty() {
     if (!getState().enabled) return;
 
     dirty = true;
     if (timer !== null) cancel(timer);
-    timer = schedule(async () => {
-      timer = null;
-      if (!dirty) return;
-      if (!getState().enabled) {
-        dirty = false;
-        return;
-      }
-
-      dirty = false;
-      if (!exportNow()) return;
-      await pushNow();
+    timer = schedule(() => {
+      void runPending().catch(onError);
     }, delay);
   }
 

@@ -3,8 +3,6 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { createAutoSyncController } from '../server/auto-sync.mjs';
 
-process.removeAllListeners('warning');
-
 function createDb() {
   const db = new DatabaseSync(':memory:');
   db.exec('CREATE TABLE app_settings(key TEXT PRIMARY KEY, value TEXT NOT NULL)');
@@ -68,6 +66,25 @@ test('setEnabled persists enabled and disabled values in SQLite', () => {
     source: 'database',
   });
   assert.equal(readValue(), '0');
+});
+
+test('setEnabled rejects non-boolean values without writing SQLite', () => {
+  const db = createDb();
+  const controller = createAutoSyncController({
+    db,
+    envValue: undefined,
+    exportNow: () => true,
+    pushNow: async () => {},
+  });
+
+  for (const value of ['false', 1, null, undefined]) {
+    assert.throws(() => controller.setEnabled(value), TypeError);
+  }
+
+  const row = db.prepare(
+    'SELECT value FROM app_settings WHERE key = ?',
+  ).get('metadata_auto_sync');
+  assert.equal(row, undefined);
 });
 
 test('AUTO_SYNC on and off lock the effective setting and reject writes', () => {
@@ -179,4 +196,146 @@ test('disabling pending work cancels it and re-enabling does not replay it', asy
   assert.equal(scheduler.tasks.length, 1);
   await pendingTask.callback();
   assert.deepEqual(calls, []);
+});
+
+test('scheduled work returns synchronously and skips push when export returns false', async () => {
+  const db = createDb();
+  const scheduler = createFakeScheduler();
+  let exportCalls = 0;
+  let pushCalls = 0;
+  const controller = createAutoSyncController({
+    db,
+    envValue: undefined,
+    exportNow: () => {
+      exportCalls += 1;
+      return false;
+    },
+    pushNow: async () => {
+      pushCalls += 1;
+    },
+    schedule: scheduler.schedule,
+    cancel: scheduler.cancel,
+  });
+
+  controller.setEnabled(true);
+  controller.markDirty();
+
+  assert.equal(scheduler.tasks[0].callback(), undefined);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(exportCalls, 1);
+  assert.equal(pushCalls, 0);
+});
+
+test('scheduled work rechecks SQLite state before exporting', async () => {
+  const db = createDb();
+  const scheduler = createFakeScheduler();
+  let exportCalls = 0;
+  let pushCalls = 0;
+  const controller = createAutoSyncController({
+    db,
+    envValue: undefined,
+    exportNow: () => {
+      exportCalls += 1;
+      return true;
+    },
+    pushNow: async () => {
+      pushCalls += 1;
+    },
+    schedule: scheduler.schedule,
+    cancel: scheduler.cancel,
+  });
+
+  controller.setEnabled(true);
+  controller.markDirty();
+  db.prepare('UPDATE app_settings SET value = ? WHERE key = ?')
+    .run('0', 'metadata_auto_sync');
+
+  assert.equal(scheduler.tasks[0].callback(), undefined);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(exportCalls, 0);
+  assert.equal(pushCalls, 0);
+});
+
+test('export errors are observed and later dirty work can run', async () => {
+  const db = createDb();
+  const scheduler = createFakeScheduler();
+  const exportError = new Error('export failed');
+  const errors = [];
+  let exportCalls = 0;
+  let pushCalls = 0;
+  const controller = createAutoSyncController({
+    db,
+    envValue: undefined,
+    exportNow: () => {
+      exportCalls += 1;
+      if (exportCalls === 1) throw exportError;
+      return true;
+    },
+    pushNow: async () => {
+      pushCalls += 1;
+    },
+    schedule: scheduler.schedule,
+    cancel: scheduler.cancel,
+    onError: (error) => errors.push(error),
+  });
+
+  controller.setEnabled(true);
+  controller.markDirty();
+  assert.equal(scheduler.tasks[0].callback(), undefined);
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.deepEqual(errors, [exportError]);
+  assert.equal(exportCalls, 1);
+  assert.equal(pushCalls, 0);
+
+  controller.markDirty();
+  assert.equal(scheduler.tasks.length, 2);
+  assert.equal(scheduler.tasks[1].callback(), undefined);
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.deepEqual(errors, [exportError]);
+  assert.equal(exportCalls, 2);
+  assert.equal(pushCalls, 1);
+});
+
+test('push rejections are observed and later dirty work can run', async () => {
+  const db = createDb();
+  const scheduler = createFakeScheduler();
+  const pushError = new Error('push failed');
+  const errors = [];
+  let exportCalls = 0;
+  let pushCalls = 0;
+  const controller = createAutoSyncController({
+    db,
+    envValue: undefined,
+    exportNow: () => {
+      exportCalls += 1;
+      return true;
+    },
+    pushNow: async () => {
+      pushCalls += 1;
+      if (pushCalls === 1) throw pushError;
+    },
+    schedule: scheduler.schedule,
+    cancel: scheduler.cancel,
+    onError: (error) => errors.push(error),
+  });
+
+  controller.setEnabled(true);
+  controller.markDirty();
+  assert.equal(scheduler.tasks[0].callback(), undefined);
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.deepEqual(errors, [pushError]);
+  assert.equal(exportCalls, 1);
+  assert.equal(pushCalls, 1);
+
+  controller.markDirty();
+  assert.equal(scheduler.tasks.length, 2);
+  assert.equal(scheduler.tasks[1].callback(), undefined);
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.deepEqual(errors, [pushError]);
+  assert.equal(exportCalls, 2);
+  assert.equal(pushCalls, 2);
 });
