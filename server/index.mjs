@@ -26,6 +26,7 @@ import {
   agentSkillDir, sanitizeName,
 } from './agents.mjs';
 import { createAutoSyncController } from './auto-sync.mjs';
+import { syncMetadataGit } from './git-sync.mjs';
 
 // Node 22 下 node:sqlite 会打印 ExperimentalWarning，屏蔽噪音
 process.removeAllListeners('warning');
@@ -64,19 +65,18 @@ function exportJsonNow() {
 }
 
 async function pushJsonNow() {
-  try {
-    // 有变更才提交
-    const { stdout: diff } = await exec('git', ['-C', PROJECT_ROOT, 'status', '--porcelain', '--', 'data/skills.json']);
-    if (!diff.trim()) return { pushed: false, reason: 'no-change' };
-    await exec('git', ['-C', PROJECT_ROOT, 'add', 'data/skills.json']);
-    await exec('git', ['-C', PROJECT_ROOT, '-c', `user.name=${GIT_NAME}`, '-c', `user.email=${GIT_EMAIL}`, 'commit', '-m', 'auto-sync: 列表更新（后端自动同步）']);
-    const { stdout: pushOut } = await exec('git', ['-C', PROJECT_ROOT, 'push'], { timeout: 60000 });
-    console.log('[auto-sync] 已推送远端:', pushOut.trim().split('\n').slice(-1)[0]);
-    return { pushed: true };
-  } catch (e) {
-    console.error('[auto-sync] push 失败（稍后操作会重试）:', e.message.split('\n')[0]);
-    return { pushed: false, reason: e.message.split('\n')[0] };
+  const result = await syncMetadataGit({
+    projectRoot: PROJECT_ROOT,
+    gitName: GIT_NAME,
+    gitEmail: GIT_EMAIL,
+    commitMessage: 'auto-sync: 列表更新（后端自动同步）',
+  });
+  if (result.pushed) {
+    console.log('[auto-sync] 已推送远端:', result.output || result.commit);
+  } else if (result.reason !== 'no-change') {
+    console.error('[auto-sync] push 未执行（稍后操作会重试）:', result.reason);
   }
+  return result;
 }
 
 const exec = promisify(execFile);
