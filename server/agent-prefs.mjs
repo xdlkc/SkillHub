@@ -29,6 +29,9 @@ export class AgentPreferenceError extends Error {
 }
 
 function parseBulkPreferenceRequest(body, supportedAgents) {
+  if (!body || typeof body !== 'object') {
+    throw new AgentPreferenceError(400, '请求体必须是对象');
+  }
   if (!Array.isArray(body.agents) || body.agents.length === 0) {
     throw new AgentPreferenceError(400, 'agents 必须是非空数组');
   }
@@ -60,7 +63,17 @@ function writeAgentPreferences(db, agentIds, enabled) {
     for (const id of agentIds) statement.run(id, enabled ? 1 : 0);
     db.exec('COMMIT');
   } catch (error) {
-    try { db.exec('ROLLBACK'); } catch {}
+    try {
+      db.exec('ROLLBACK');
+    } catch (rollbackError) {
+      const errors = [error, rollbackError];
+      try {
+        db.close();
+      } catch (closeError) {
+        errors.push(closeError);
+      }
+      throw new AggregateError(errors, 'Agent preference transaction rollback failed');
+    }
     throw error;
   }
 }

@@ -88,6 +88,8 @@ describe('updateAgentPreferences', () => {
   });
 
   it.each([
+    [null, 400],
+    [undefined, 400],
     [{ agents: [], enabled: true }, 400],
     [{ agents: ['cursor'], enabled: 'yes' }, 400],
     [{ agents: [42], enabled: true }, 400],
@@ -105,11 +107,18 @@ describe('updateAgentPreferences', () => {
   it('rejects unknown ids before writing any valid id', () => {
     const db = createDb();
 
-    expect(() => updateAgentPreferences(
+    let caught;
+    try {
+      updateAgentPreferences(
       db,
       { agents: ['cursor', 'missing-agent'], enabled: true },
       agents
-    )).toThrowError(AgentPreferenceError);
+      );
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(AgentPreferenceError);
+    expect(caught).toMatchObject({ status: 404 });
     expect(db.prepare('SELECT * FROM agent_prefs').all()).toEqual([]);
   });
 
@@ -130,5 +139,52 @@ describe('updateAgentPreferences', () => {
       agents
     )).toThrow('forced write failure');
     expect(db.prepare('SELECT * FROM agent_prefs').all()).toEqual([]);
+  });
+
+  it('closes the database and reports both errors when rollback fails', () => {
+    const db = createDb();
+    const rollbackError = new Error('forced rollback failure');
+    let closed = false;
+    const close = () => {
+      if (!closed) {
+        closed = true;
+        db.close();
+      }
+    };
+    databases[databases.length - 1] = { close };
+
+    db.exec(`
+      CREATE TRIGGER fail_codex_preference
+      BEFORE INSERT ON agent_prefs
+      WHEN NEW.agent = 'codex'
+      BEGIN
+        SELECT RAISE(FAIL, 'forced write failure');
+      END;
+    `);
+    const faultWrappedDb = {
+      prepare: db.prepare.bind(db),
+      exec(sql) {
+        if (sql === 'ROLLBACK') throw rollbackError;
+        return db.exec(sql);
+      },
+      close,
+    };
+
+    let caught;
+    try {
+      updateAgentPreferences(
+        faultWrappedDb,
+        { agents: ['cursor', 'codex'], enabled: true },
+        agents
+      );
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(closed).toBe(true);
+    expect(caught).toBeInstanceOf(AggregateError);
+    expect(caught.errors).toHaveLength(2);
+    expect(caught.errors[0]).toMatchObject({ message: 'forced write failure' });
+    expect(caught.errors[1]).toBe(rollbackError);
   });
 });
