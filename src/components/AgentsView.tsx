@@ -3,6 +3,13 @@ import type { AgentInfo, InstalledItem, DiffEntry } from '../types';
 import { api } from '../api';
 import DiffPanel from './DiffPanel';
 import { navigate } from '../router';
+import {
+  applyAgentEnabled,
+  clearAgentSelection,
+  isBulkActionDisabled,
+  selectVisibleAgentIds,
+  toggleAgentSelection,
+} from './agentSelection';
 
 export default function AgentsView({ onToast }: { onToast: (m: string, e?: boolean) => void }) {
   const [agents, setAgents] = useState<AgentInfo[]>([]);
@@ -14,6 +21,7 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
   const [busy, setBusy] = useState('');
   const [q, setQ] = useState('');
   const [facet, setFacet] = useState<'all' | 'present' | 'absent' | 'disabled' | 'has-skills'>('all');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const loadAll = () =>
     Promise.all([api.agents(), api.installed()])
@@ -52,6 +60,27 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
       return true;
     });
   }, [sortedAgents, q, facet, byAgent]);
+
+  const preferenceBusy = busy === 'agents:bulk' || busy.endsWith(':enabled');
+  const bulkDisabled = isBulkActionDisabled(selected.size, preferenceBusy);
+
+  const selectCurrentResults = () =>
+    setSelected((current) => selectVisibleAgentIds(current, filteredAgents.map((agent) => agent.id)));
+
+  const doBulkEnabled = async (enabled: boolean) => {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    setBusy('agents:bulk');
+    try {
+      const result = await api.setAgentsEnabled(ids, enabled);
+      setAgents((current) => applyAgentEnabled(current, result.agents, result.enabled));
+      onToast(`已${result.enabled ? '启用' : '禁用'} ${result.updated} 个 agent`);
+    } catch (error) {
+      onToast((error as Error).message, true);
+    } finally {
+      setBusy('');
+    }
+  };
 
   const toggleAgent = (id: string) =>
     setExpanded((prev) => {
@@ -178,6 +207,21 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
             </span>
           ))}
         </div>
+        <div className="agent-bulk-actions">
+          <span className="agent-selection-count">已选 {selected.size} 个</span>
+          <button className="btn ghost" onClick={selectCurrentResults} disabled={preferenceBusy || filteredAgents.length === 0}>
+            选择当前结果
+          </button>
+          <button className="btn ghost" onClick={() => setSelected(clearAgentSelection())} disabled={preferenceBusy || selected.size === 0}>
+            清空选择
+          </button>
+          <button className="btn primary" onClick={() => doBulkEnabled(true)} disabled={bulkDisabled}>
+            批量启用 ({selected.size})
+          </button>
+          <button className="btn danger" onClick={() => doBulkEnabled(false)} disabled={bulkDisabled}>
+            批量禁用 ({selected.size})
+          </button>
+        </div>
       </div>
 
       <div className="agent-grid">
@@ -187,8 +231,17 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
           const list = byAgent.get(a.id) ?? [];
           const open = expanded.has(a.id);
           return (
-            <div className={`agent-card${a.installed ? '' : ' absent'}`} key={a.id} style={{ opacity: a.enabled ? undefined : 0.45 }}>
+            <div className={`agent-card${a.installed ? '' : ' absent'}${selected.has(a.id) ? ' selected' : ''}`} key={a.id} style={{ opacity: a.enabled ? undefined : 0.45 }}>
               <div className="agent-card-head" onClick={() => toggleAgent(a.id)}>
+                <input
+                  className="agent-select"
+                  type="checkbox"
+                  aria-label={`选择 ${a.name}`}
+                  checked={selected.has(a.id)}
+                  disabled={preferenceBusy}
+                  onClick={(event) => event.stopPropagation()}
+                  onChange={() => setSelected((current) => toggleAgentSelection(current, a.id))}
+                />
                 <div className="agent-card-name">
                   {a.name}
                   {!a.enabled && (
@@ -206,7 +259,7 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
                     className="btn ghost"
                     style={{ padding: '4px 10px', fontSize: 11 }}
                     title={a.enabled ? '禁用后不再出现在安装列表' : '重新启用该 agent'}
-                    disabled={busy === `${a.id}:enabled`}
+                    disabled={preferenceBusy}
                     onClick={() => toggleEnabled(a)}
                   >
                     {a.enabled ? '◎ 禁用' : '● 启用'}

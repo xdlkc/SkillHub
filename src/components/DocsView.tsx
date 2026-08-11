@@ -52,6 +52,8 @@ npm run dev           # 前端 http://localhost:5173`}</pre>
               <tr><td>POST</td><td><code>/api/skills/:id/pull</code></td><td>git pull 更新本地代码</td></tr>
               <tr><td>GET</td><td><code>/api/skills/:id/readme</code></td><td>README/SKILL.md 预览（需已 clone）</td></tr>
               <tr><td>GET</td><td><code>/api/agents</code></td><td>支持安装的 agents + 本机安装探测</td></tr>
+              <tr><td>PATCH</td><td><code>/api/agents/:id</code></td><td>启用或禁用单个 Agent</td></tr>
+              <tr><td>PATCH</td><td><code>/api/agents</code></td><td>原子地批量启用或禁用所选 Agents</td></tr>
               <tr><td>GET</td><td><code>/api/installed</code></td><td>各 agent 已安装的 skills 列表</td></tr>
               <tr><td>POST</td><td><code>/api/skills/items/install</code></td><td>安装 skill 到指定 agent（copy 模式）</td></tr>
               <tr><td>POST</td><td><code>/api/skills/items/update</code></td><td>更新已安装 skill（覆盖同步）</td></tr>
