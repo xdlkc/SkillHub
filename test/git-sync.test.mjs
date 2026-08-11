@@ -2,23 +2,66 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { chmod, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { access, chmod, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { syncMetadataGit } from '../server/git-sync.mjs';
+import * as gitSyncModule from '../server/git-sync.mjs';
 
 const execFileAsync = promisify(execFile);
+const { syncMetadataGit } = gitSyncModule;
+const REDIRECT_ENV_KEYS = new Set([
+  'GIT_DIR',
+  'GIT_WORK_TREE',
+  'GIT_COMMON_DIR',
+  'GIT_INDEX_FILE',
+  'GIT_OBJECT_DIRECTORY',
+  'GIT_ALTERNATE_OBJECT_DIRECTORIES',
+  'GIT_NAMESPACE',
+  'GIT_PREFIX',
+  'GIT_CONFIG',
+  'GIT_CONFIG_GLOBAL',
+  'GIT_CONFIG_SYSTEM',
+  'GIT_CONFIG_NOSYSTEM',
+  'GIT_CONFIG_COUNT',
+  'GIT_CONFIG_PARAMETERS',
+]);
+
+function sanitizedTestGitEnv() {
+  const env = { ...process.env };
+  for (const key of Object.keys(env)) {
+    if (
+      REDIRECT_ENV_KEYS.has(key)
+      || /^GIT_CONFIG_(?:KEY|VALUE)_/.test(key)
+    ) delete env[key];
+  }
+  env.GIT_CONFIG_GLOBAL = os.devNull;
+  env.GIT_CONFIG_NOSYSTEM = '1';
+  env.GIT_TERMINAL_PROMPT = '0';
+  return env;
+}
 
 async function git(cwd, ...args) {
-  const { stdout } = await execFileAsync('git', ['-C', cwd, ...args], {
+  const { stdout } = await execFileAsync('git', [
+    '-c', `core.hooksPath=${os.devNull}`,
+    '-c', 'commit.gpgSign=false',
+    '-C', cwd,
+    ...args,
+  ], {
     encoding: 'utf8',
+    env: sanitizedTestGitEnv(),
   });
   return stdout.trim();
 }
 
 async function bareGit(gitDir, ...args) {
-  const { stdout } = await execFileAsync('git', [`--git-dir=${gitDir}`, ...args], {
+  const { stdout } = await execFileAsync('git', [
+    '-c', `core.hooksPath=${os.devNull}`,
+    '-c', 'commit.gpgSign=false',
+    `--git-dir=${gitDir}`,
+    ...args,
+  ], {
     encoding: 'utf8',
+    env: sanitizedTestGitEnv(),
   });
   return stdout.trim();
 }
@@ -34,8 +77,8 @@ async function createFixture(t) {
   const work = path.join(root, 'work');
   const remote = path.join(root, 'remote.git');
   await mkdir(work);
-  await git(root, 'init', '--bare', '--initial-branch=main', remote);
-  await git(root, 'init', '--initial-branch=main', work);
+  await git(root, 'init', '--bare', '--template=', '--initial-branch=main', remote);
+  await git(root, 'init', '--template=', '--initial-branch=main', work);
   await git(work, 'config', 'user.name', 'Fixture User');
   await git(work, 'config', 'user.email', 'fixture@example.com');
   await write(work, 'data/skills.json', '{"version":1}\n');
@@ -54,14 +97,22 @@ async function createFixture(t) {
   return { root, work, remote, baseSha };
 }
 
-function sync(work) {
-  return syncMetadataGit({
+function syncWith(syncFunction, work) {
+  return syncFunction({
     projectRoot: work,
     gitName: 'SKILLS-INDEX Bot',
     gitEmail: 'skills-bot@users.noreply.github.com',
     commitMessage: 'auto-sync: metadata test',
   });
 }
+
+function sync(work) {
+  return syncWith(syncMetadataGit, work);
+}
+
+test('exposes a sync factory for isolated process execution', () => {
+  assert.equal(typeof gitSyncModule.createMetadataGitSync, 'function');
+});
 
 test('commits only data/skills.json while preserving unrelated staged and unstaged work', async (t) => {
   const fixture = await createFixture(t);
@@ -151,10 +202,41 @@ test('fails safely before committing when the current branch has no upstream', a
   assert.equal(await git(fixture.work, 'status', '--short', '--', 'data/skills.json'), 'M data/skills.json');
 });
 
+test('does not recreate an upstream branch deleted before sync', async (t) => {
+  const fixture = await createFixture(t);
+  await bareGit(fixture.remote, 'update-ref', '-d', 'refs/heads/main');
+  await write(fixture.work, 'data/skills.json', '{"version":2}\n');
+  const localBefore = await git(fixture.work, 'rev-parse', 'HEAD');
+
+  const result = await sync(fixture.work);
+
+  assert.deepEqual(result, { pushed: false, reason: 'remote-missing' });
+  assert.equal(await git(fixture.work, 'rev-parse', 'HEAD'), localBefore);
+  await assert.rejects(
+    bareGit(fixture.remote, 'show-ref', '--verify', '--quiet', 'refs/heads/main'),
+  );
+});
+
+test('reports remote-missing when the configured remote and tracking branches are both absent', async (t) => {
+  const fixture = await createFixture(t);
+  await bareGit(fixture.remote, 'update-ref', '-d', 'refs/heads/main');
+  await git(fixture.work, 'update-ref', '-d', 'refs/remotes/origin/main');
+  await write(fixture.work, 'data/skills.json', '{"version":2}\n');
+  const localBefore = await git(fixture.work, 'rev-parse', 'HEAD');
+
+  const result = await sync(fixture.work);
+
+  assert.deepEqual(result, { pushed: false, reason: 'remote-missing' });
+  assert.equal(await git(fixture.work, 'rev-parse', 'HEAD'), localBefore);
+  await assert.rejects(
+    bareGit(fixture.remote, 'show-ref', '--verify', '--quiet', 'refs/heads/main'),
+  );
+});
+
 test('fetches and refuses before committing when the local branch is behind upstream', async (t) => {
   const fixture = await createFixture(t);
   const peer = path.join(fixture.root, 'peer');
-  await git(fixture.root, 'clone', fixture.remote, peer);
+  await git(fixture.root, 'clone', '--template=', fixture.remote, peer);
   await git(peer, 'config', 'user.name', 'Peer User');
   await git(peer, 'config', 'user.email', 'peer@example.com');
   await write(peer, 'remote-only.txt', 'remote work\n');
@@ -200,29 +282,262 @@ test('inspects every merge parent so an ahead merge cannot hide unrelated paths'
   assert.equal(await git(fixture.work, 'status', '--short', '--', 'data/skills.json'), 'M data/skills.json');
 });
 
-test('rechecks ahead history after committing and refuses concurrent unrelated HEAD movement', async (t) => {
+test('disables a malicious post-commit hook and pushes the exact metadata blob', async (t) => {
   const fixture = await createFixture(t);
   const hookPath = path.join(fixture.work, '.git', 'hooks', 'post-commit');
+  const markerPath = path.join(fixture.root, 'hook-ran');
+  await mkdir(path.dirname(hookPath), { recursive: true });
   await writeFile(hookPath, `#!/bin/sh
 set -eu
-repo="$(git rev-parse --show-toplevel)"
 head="$(git rev-parse HEAD)"
-printf 'concurrent user work\\n' > "$repo/notes.txt"
-git add notes.txt
-tree="$(git write-tree)"
-commit="$(printf 'concurrent user commit\\n' | git commit-tree "$tree" -p "$head")"
-git update-ref refs/heads/main "$commit" "$head"
+git update-ref refs/heads/main "${fixture.baseSha}" "$head"
+printf 'ran\\n' > "${markerPath}"
 `);
   await chmod(hookPath, 0o755);
   await write(fixture.work, 'data/skills.json', '{"version":2}\n');
-  const remoteBefore = await bareGit(fixture.remote, 'rev-parse', 'refs/heads/main');
 
   const result = await sync(fixture.work);
 
+  assert.equal(result.pushed, true);
+  await assert.rejects(access(markerPath));
+  assert.equal(await bareGit(fixture.remote, 'rev-parse', 'refs/heads/main'), result.commit);
+  assert.equal(await bareGit(fixture.remote, 'show', 'main:data/skills.json'), '{"version":2}');
+});
+
+test('disables repository hooks while fetch updates remote-tracking refs', async (t) => {
+  const fixture = await createFixture(t);
+  const peer = path.join(fixture.root, 'peer-hook-fetch');
+  await git(fixture.root, 'clone', '--template=', fixture.remote, peer);
+  await git(peer, 'config', 'user.name', 'Peer User');
+  await git(peer, 'config', 'user.email', 'peer@example.com');
+  await write(peer, 'remote-hook-update.txt', 'peer update\n');
+  await git(peer, 'add', 'remote-hook-update.txt');
+  await git(peer, 'commit', '-m', 'peer: update for fetch hook');
+  await git(peer, 'push', 'origin', 'main');
+
+  const hookPath = path.join(fixture.work, '.git', 'hooks', 'reference-transaction');
+  const markerPath = path.join(fixture.root, 'fetch-hook-ran');
+  await mkdir(path.dirname(hookPath), { recursive: true });
+  await writeFile(hookPath, `#!/bin/sh
+printf 'ran\\n' > "${markerPath}"
+exit 0
+`);
+  await chmod(hookPath, 0o755);
+  await write(fixture.work, 'data/skills.json', '{"version":2}\n');
+
+  const result = await sync(fixture.work);
+
+  assert.deepEqual(result, { pushed: false, reason: 'behind-upstream' });
+  await assert.rejects(access(markerPath));
+});
+
+test('sanitizes repository and index redirection variables before every Git command', async (t) => {
+  const fixture = await createFixture(t);
+  const decoy = path.join(fixture.root, 'decoy');
+  await mkdir(decoy);
+  await git(fixture.root, 'init', '--template=', '--initial-branch=main', decoy);
+  await git(decoy, 'config', 'user.name', 'Decoy User');
+  await git(decoy, 'config', 'user.email', 'decoy@example.com');
+  await write(decoy, 'data/skills.json', '{"version":99}\n');
+  await git(decoy, 'add', '.');
+  await git(decoy, 'commit', '-m', 'decoy initial');
+  const decoyHead = await git(decoy, 'rev-parse', 'HEAD');
+  await write(fixture.work, 'data/skills.json', '{"version":2}\n');
+
+  const contaminated = {
+    GIT_DIR: path.join(decoy, '.git'),
+    GIT_WORK_TREE: decoy,
+    GIT_INDEX_FILE: path.join(decoy, '.git', 'index'),
+  };
+  const previous = new Map(Object.keys(contaminated).map((key) => [key, process.env[key]]));
+  Object.assign(process.env, contaminated);
+  let result;
+  try {
+    result = await sync(fixture.work);
+  } finally {
+    for (const [key, value] of previous) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+
+  assert.equal(result.pushed, true);
+  assert.equal(await bareGit(fixture.remote, 'show', 'main:data/skills.json'), '{"version":2}');
+  assert.equal(await git(decoy, 'rev-parse', 'HEAD'), decoyHead);
+  assert.equal(await readFile(path.join(decoy, 'data/skills.json'), 'utf8'), '{"version":99}\n');
+});
+
+test('removes every Git config override/count variable from subprocess environments', async (t) => {
+  const fixture = await createFixture(t);
+  await write(fixture.work, 'data/skills.json', '{"version":2}\n');
+  const contaminated = {
+    GIT_CONFIG_COUNT: '1',
+    GIT_CONFIG_KEY_0: 'alias.status',
+    GIT_CONFIG_VALUE_0: '!false',
+    GIT_CONFIG_KEY_SURPRISE: 'user.name',
+    GIT_CONFIG_VALUE_SURPRISE: 'Contaminated User',
+    GIT_CONFIG_GLOBAL: path.join(fixture.root, 'malicious-global-config'),
+    GIT_CONFIG_NOSYSTEM: '1',
+    GIT_CONFIG_PARAMETERS: "'user.name=Contaminated User'",
+  };
+  const previous = new Map(Object.keys(contaminated).map((key) => [key, process.env[key]]));
+  Object.assign(process.env, contaminated);
+  const leaked = new Set();
+  const isolatedSync = gitSyncModule.createMetadataGitSync({
+    async runProcess(file, args, options) {
+      for (const key of Object.keys(options.env)) {
+        if (
+          key === 'GIT_CONFIG_COUNT'
+          || key === 'GIT_CONFIG_GLOBAL'
+          || key === 'GIT_CONFIG_NOSYSTEM'
+          || key === 'GIT_CONFIG_PARAMETERS'
+          || /^GIT_CONFIG_(?:KEY|VALUE)_/.test(key)
+        ) leaked.add(key);
+      }
+      return execFileAsync(file, args, options);
+    },
+  });
+  let result;
+  try {
+    result = await syncWith(isolatedSync, fixture.work);
+  } finally {
+    for (const [key, value] of previous) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+
+  assert.equal(result.pushed, true);
+  assert.deepEqual([...leaked], []);
+});
+
+test('refuses when the exact upstream OID changes between the two fetch stages', async (t) => {
+  const fixture = await createFixture(t);
+  const peer = path.join(fixture.root, 'peer-between-fetches');
+  await git(fixture.root, 'clone', '--template=', fixture.remote, peer);
+  await git(peer, 'config', 'user.name', 'Peer User');
+  await git(peer, 'config', 'user.email', 'peer@example.com');
+  await write(fixture.work, 'data/skills.json', '{"version":2}\n');
+  let fetchCount = 0;
+  const isolatedSync = gitSyncModule.createMetadataGitSync({
+    async runProcess(file, args, options) {
+      if (file === 'git' && args.includes('fetch') && ++fetchCount === 2) {
+        await write(peer, 'remote-between-fetches.txt', 'peer update\n');
+        await git(peer, 'add', 'remote-between-fetches.txt');
+        await git(peer, 'commit', '-m', 'peer: update between fetches');
+        await git(peer, 'push', 'origin', 'main');
+      }
+      return execFileAsync(file, args, options);
+    },
+  });
+
+  const result = await syncWith(isolatedSync, fixture.work);
+
+  assert.deepEqual(result, { pushed: false, reason: 'remote-changed' });
+  assert.equal(fetchCount, 2);
+  assert.equal(
+    await bareGit(fixture.remote, 'show', 'main:remote-between-fetches.txt'),
+    'peer update',
+  );
+});
+
+test('uses an exact lease so a remote rewind after the final fetch cannot be overwritten', async (t) => {
+  const fixture = await createFixture(t);
+  await write(fixture.work, 'data/skills.json', '{"version":1.5}\n');
+  await git(fixture.work, 'add', 'data/skills.json');
+  await git(fixture.work, 'commit', '-m', 'upstream metadata baseline');
+  await git(fixture.work, 'push', 'origin', 'main');
+  const expectedOid = await git(fixture.work, 'rev-parse', 'HEAD');
+  await write(fixture.work, 'data/skills.json', '{"version":2}\n');
+  let pushArgs;
+  const isolatedSync = gitSyncModule.createMetadataGitSync({
+    async runProcess(file, args, options) {
+      if (file === 'git' && args.includes('push')) {
+        pushArgs = args;
+        await bareGit(
+          fixture.remote,
+          'update-ref', 'refs/heads/main', fixture.baseSha, expectedOid,
+        );
+      }
+      return execFileAsync(file, args, options);
+    },
+  });
+
+  const result = await syncWith(isolatedSync, fixture.work);
+
   assert.equal(result.pushed, false);
-  assert.match(result.reason, /unsafe-ahead: .* changes notes\.txt/);
-  assert.notEqual(await git(fixture.work, 'rev-parse', 'HEAD'), remoteBefore);
-  assert.equal(await bareGit(fixture.remote, 'rev-parse', 'refs/heads/main'), remoteBefore);
+  assert.ok(pushArgs.includes(`--force-with-lease=refs/heads/main:${expectedOid}`));
+  assert.equal(await bareGit(fixture.remote, 'rev-parse', 'refs/heads/main'), fixture.baseSha);
+});
+
+test('serializes overlapping syncs per resolved project root without blocking another root', async (t) => {
+  const firstFixture = await createFixture(t);
+  const otherFixture = await createFixture(t);
+  await write(firstFixture.work, 'data/skills.json', '{"version":2}\n');
+  await write(otherFixture.work, 'data/skills.json', '{"version":2}\n');
+  const firstRoot = await realpath(firstFixture.work);
+  const otherRoot = await realpath(otherFixture.work);
+
+  let releaseFirst;
+  const firstGate = new Promise((resolve) => { releaseFirst = resolve; });
+  let signalFirstEntered;
+  const firstEntered = new Promise((resolve) => { signalFirstEntered = resolve; });
+  let signalOtherEntered;
+  const otherEntered = new Promise((resolve) => { signalOtherEntered = resolve; });
+  const statusCalls = new Map();
+  const isolatedSync = gitSyncModule.createMetadataGitSync({
+    async runProcess(file, args, options) {
+      if (file === 'git' && args.includes('status')) {
+        const root = await realpath(args[1]);
+        const count = (statusCalls.get(root) || 0) + 1;
+        statusCalls.set(root, count);
+        if (root === firstRoot && count === 1) {
+          signalFirstEntered();
+          await firstGate;
+        }
+        if (root === otherRoot) signalOtherEntered();
+      }
+      return execFileAsync(file, args, options);
+    },
+  });
+
+  const first = syncWith(isolatedSync, firstFixture.work);
+  await firstEntered;
+  const overlapping = syncWith(isolatedSync, firstFixture.work);
+  const unrelated = syncWith(isolatedSync, otherFixture.work);
+  const otherRanBeforeRelease = await Promise.race([
+    otherEntered.then(() => true),
+    new Promise((resolve) => setTimeout(() => resolve(false), 150)),
+  ]);
+  const sameRootCallsBeforeRelease = statusCalls.get(firstRoot);
+  releaseFirst();
+  await Promise.all([first, overlapping, unrelated]);
+
+  assert.equal(sameRootCallsBeforeRelease, 1);
+  assert.equal(otherRanBeforeRelease, true);
+});
+
+test('applies the configured timeout to every Git subprocess', async (t) => {
+  const fixture = await createFixture(t);
+  await write(fixture.work, 'data/skills.json', '{"version":2}\n');
+  const observedTimeouts = new Set();
+  const isolatedSync = gitSyncModule.createMetadataGitSync({
+    async runProcess(file, args, options) {
+      observedTimeouts.add(options.timeout);
+      return execFileAsync(file, args, options);
+    },
+  });
+
+  const result = await isolatedSync({
+    projectRoot: fixture.work,
+    gitName: 'SKILLS-INDEX Bot',
+    gitEmail: 'skills-bot@users.noreply.github.com',
+    commitMessage: 'auto-sync: metadata test',
+    timeout: 4321,
+  });
+
+  assert.equal(result.pushed, true);
+  assert.deepEqual([...observedTimeouts], [4321]);
 });
 
 test('refuses an ahead commit that has no metadata path change', async (t) => {

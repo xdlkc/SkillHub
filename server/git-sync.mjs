@@ -1,17 +1,54 @@
 import { execFile } from 'node:child_process';
+import { realpath } from 'node:fs/promises';
 import { promisify } from 'node:util';
+import os from 'node:os';
 
 const execFileAsync = promisify(execFile);
 const METADATA_PATH = 'data/skills.json';
+const syncTails = new Map();
+const GIT_ENV_OVERRIDES = new Set([
+  'GIT_DIR',
+  'GIT_WORK_TREE',
+  'GIT_COMMON_DIR',
+  'GIT_INDEX_FILE',
+  'GIT_OBJECT_DIRECTORY',
+  'GIT_ALTERNATE_OBJECT_DIRECTORIES',
+  'GIT_NAMESPACE',
+  'GIT_PREFIX',
+  'GIT_CONFIG',
+  'GIT_CONFIG_GLOBAL',
+  'GIT_CONFIG_SYSTEM',
+  'GIT_CONFIG_NOSYSTEM',
+  'GIT_CONFIG_COUNT',
+  'GIT_CONFIG_PARAMETERS',
+]);
 
-async function git(projectRoot, args, options = {}) {
-  return execFileAsync('git', ['-C', projectRoot, ...args], {
+function sanitizedGitEnv() {
+  const env = { ...process.env };
+  for (const key of Object.keys(env)) {
+    if (
+      GIT_ENV_OVERRIDES.has(key)
+      || /^GIT_CONFIG_(?:KEY|VALUE)_/.test(key)
+    ) delete env[key];
+  }
+  return env;
+}
+
+function createGitRunner(runProcess, timeout) {
+  return (projectRoot, args) => runProcess('git', [
+    '-C', projectRoot,
+    '-c', `core.hooksPath=${os.devNull}`,
+    '-c', 'commit.gpgSign=false',
+    '-c', 'push.gpgSign=false',
+    ...args,
+  ], {
     encoding: 'utf8',
-    ...options,
+    timeout,
+    env: sanitizedGitEnv(),
   });
 }
 
-async function optionalGit(projectRoot, args, allowedCodes = [1]) {
+async function optionalGit(git, projectRoot, args, allowedCodes = [1]) {
   try {
     return firstLine((await git(projectRoot, args)).stdout);
   } catch (error) {
@@ -28,7 +65,7 @@ function failureReason(error) {
   return firstLine(error?.stderr) || firstLine(error?.stdout) || firstLine(error?.message) || 'git operation failed';
 }
 
-async function findUnsafeAhead(projectRoot, upstreamRef) {
+async function findUnsafeAhead(git, projectRoot, upstreamRef) {
   const output = (await git(projectRoot, ['rev-list', '--reverse', `${upstreamRef}..HEAD`])).stdout.trim();
   const commits = output ? output.split('\n') : [];
   for (const commit of commits) {
@@ -43,7 +80,7 @@ async function findUnsafeAhead(projectRoot, upstreamRef) {
   return '';
 }
 
-async function isBehindUpstream(projectRoot, upstreamRef) {
+async function isBehindUpstream(git, projectRoot, upstreamRef) {
   const counts = firstLine((await git(
     projectRoot,
     ['rev-list', '--left-right', '--count', `HEAD...${upstreamRef}`],
@@ -51,7 +88,7 @@ async function isBehindUpstream(projectRoot, upstreamRef) {
   return Number(counts[1]) > 0;
 }
 
-async function isAncestor(projectRoot, ancestor, descendant) {
+async function isAncestor(git, projectRoot, ancestor, descendant) {
   try {
     await git(projectRoot, ['merge-base', '--is-ancestor', ancestor, descendant]);
     return true;
@@ -61,13 +98,14 @@ async function isAncestor(projectRoot, ancestor, descendant) {
   }
 }
 
-export async function syncMetadataGit({
+async function runMetadataGitSync({
   projectRoot,
   gitName,
   gitEmail,
   commitMessage,
   timeout = 60000,
-}) {
+}, runProcess) {
+  const git = createGitRunner(runProcess, timeout);
   try {
     const metadataStatus = (await git(
       projectRoot,
@@ -75,51 +113,96 @@ export async function syncMetadataGit({
     )).stdout.trim();
     if (!metadataStatus) return { pushed: false, reason: 'no-change' };
 
-    const branch = await optionalGit(projectRoot, ['symbolic-ref', '--quiet', '--short', 'HEAD']);
+    const branch = await optionalGit(git, projectRoot, ['symbolic-ref', '--quiet', '--short', 'HEAD']);
     const remote = branch
-      ? await optionalGit(projectRoot, ['config', '--get', `branch.${branch}.remote`])
+      ? await optionalGit(git, projectRoot, ['config', '--get', `branch.${branch}.remote`])
       : '';
     const mergeRef = branch
-      ? await optionalGit(projectRoot, ['config', '--get', `branch.${branch}.merge`])
+      ? await optionalGit(git, projectRoot, ['config', '--get', `branch.${branch}.merge`])
       : '';
     if (!branch || !remote || !mergeRef) {
       return { pushed: false, reason: 'no-upstream' };
     }
+    await git(projectRoot, ['fetch', '--prune', '--quiet', '--no-tags', '--', remote]);
     const upstreamRef = await optionalGit(
+      git,
       projectRoot,
       ['rev-parse', '--symbolic-full-name', '@{u}'],
       [1, 128],
     );
-    if (!upstreamRef) return { pushed: false, reason: 'no-upstream' };
-    await git(projectRoot, ['fetch', '--quiet', '--no-tags', '--', remote], { timeout });
-    if (await isBehindUpstream(projectRoot, upstreamRef)) {
+    if (!upstreamRef) return { pushed: false, reason: 'remote-missing' };
+    const expectedUpstreamOid = await optionalGit(
+      git,
+      projectRoot,
+      ['rev-parse', '--verify', `${upstreamRef}^{commit}`],
+      [1, 128],
+    );
+    if (!expectedUpstreamOid) return { pushed: false, reason: 'remote-missing' };
+    if (await isBehindUpstream(git, projectRoot, expectedUpstreamOid)) {
       return { pushed: false, reason: 'behind-upstream' };
     }
-    const unsafeAhead = await findUnsafeAhead(projectRoot, upstreamRef);
+    const unsafeAhead = await findUnsafeAhead(git, projectRoot, expectedUpstreamOid);
     if (unsafeAhead) return { pushed: false, reason: `unsafe-ahead: ${unsafeAhead}` };
 
+    const preCommitHead = firstLine((await git(projectRoot, ['rev-parse', 'HEAD'])).stdout);
+    const desiredMetadataBlob = firstLine((await git(
+      projectRoot,
+      ['hash-object', '--', METADATA_PATH],
+    )).stdout);
     await git(projectRoot, [
       '-c', `user.name=${gitName}`,
       '-c', `user.email=${gitEmail}`,
       'commit', '--only', '-m', commitMessage, '--', METADATA_PATH,
     ]);
-    const intendedCommit = firstLine((await git(projectRoot, ['rev-parse', 'HEAD'])).stdout);
-    await git(projectRoot, ['fetch', '--quiet', '--no-tags', '--', remote], { timeout });
-    if (await isBehindUpstream(projectRoot, upstreamRef)) {
-      return { pushed: false, reason: 'behind-upstream' };
+    const candidateHead = firstLine((await git(projectRoot, ['rev-parse', 'HEAD'])).stdout);
+    const candidateParents = firstLine((await git(
+      projectRoot,
+      ['rev-list', '--parents', '-n', '1', candidateHead],
+    )).stdout).split(/\s+/);
+    const candidateMetadataBlob = await optionalGit(
+      git,
+      projectRoot,
+      ['rev-parse', '--verify', `${candidateHead}:${METADATA_PATH}`],
+      [1, 128],
+    );
+    if (
+      candidateHead === preCommitHead
+      || candidateParents.length !== 2
+      || candidateParents[1] !== preCommitHead
+      || candidateMetadataBlob !== desiredMetadataBlob
+    ) {
+      return { pushed: false, reason: 'commit-verification-failed' };
     }
-    const unsafeAfterCommit = await findUnsafeAhead(projectRoot, upstreamRef);
+    const intendedCommit = candidateHead;
+    await git(projectRoot, ['fetch', '--prune', '--quiet', '--no-tags', '--', remote]);
+    const finalUpstreamOid = await optionalGit(
+      git,
+      projectRoot,
+      ['rev-parse', '--verify', `${upstreamRef}^{commit}`],
+      [1, 128],
+    );
+    if (!finalUpstreamOid) return { pushed: false, reason: 'remote-missing' };
+    if (finalUpstreamOid !== expectedUpstreamOid) {
+      return { pushed: false, reason: 'remote-changed' };
+    }
+    const unsafeAfterCommit = await findUnsafeAhead(git, projectRoot, expectedUpstreamOid);
     if (unsafeAfterCommit) {
       return { pushed: false, reason: `unsafe-ahead: ${unsafeAfterCommit}` };
     }
+    if (!await isAncestor(git, projectRoot, expectedUpstreamOid, intendedCommit)) {
+      return { pushed: false, reason: 'upstream-not-ancestor' };
+    }
     const checkedHead = firstLine((await git(projectRoot, ['rev-parse', 'HEAD'])).stdout);
-    if (!await isAncestor(projectRoot, intendedCommit, checkedHead)) {
+    if (!await isAncestor(git, projectRoot, intendedCommit, checkedHead)) {
       return { pushed: false, reason: 'head-moved' };
     }
     const pushed = await git(
       projectRoot,
-      ['push', '--porcelain', '--', remote, `${intendedCommit}:${mergeRef}`],
-      { timeout },
+      [
+        'push', '--porcelain',
+        `--force-with-lease=${mergeRef}:${expectedUpstreamOid}`,
+        '--', remote, `${intendedCommit}:${mergeRef}`,
+      ],
     );
 
     return {
@@ -131,3 +214,37 @@ export async function syncMetadataGit({
     return { pushed: false, reason: failureReason(error) };
   }
 }
+
+async function serializeForRoot(projectRoot, operation) {
+  const previous = syncTails.get(projectRoot) || Promise.resolve();
+  let release;
+  const current = new Promise((resolve) => { release = resolve; });
+  syncTails.set(projectRoot, current);
+  await previous;
+  try {
+    return await operation();
+  } finally {
+    release();
+    if (syncTails.get(projectRoot) === current) syncTails.delete(projectRoot);
+  }
+}
+
+export function createMetadataGitSync({ runProcess = execFileAsync } = {}) {
+  return async (options) => {
+    let resolvedProjectRoot;
+    try {
+      resolvedProjectRoot = await realpath(options.projectRoot);
+    } catch (error) {
+      return { pushed: false, reason: failureReason(error) };
+    }
+    return serializeForRoot(
+      resolvedProjectRoot,
+      () => runMetadataGitSync(
+        { ...options, projectRoot: resolvedProjectRoot },
+        runProcess,
+      ),
+    );
+  };
+}
+
+export const syncMetadataGit = createMetadataGitSync();
