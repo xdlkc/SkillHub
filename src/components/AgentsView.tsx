@@ -19,6 +19,7 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [diffMap, setDiffMap] = useState<Map<string, DiffEntry[]>>(new Map());
   const [busy, setBusy] = useState('');
+  const [preferenceOperation, setPreferenceOperation] = useState('');
   const [q, setQ] = useState('');
   const [facet, setFacet] = useState<'all' | 'present' | 'absent' | 'disabled' | 'has-skills'>('all');
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -61,8 +62,10 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
     });
   }, [sortedAgents, q, facet, byAgent]);
 
-  const preferenceBusy = busy === 'agents:bulk' || busy.endsWith(':enabled');
+  const preferenceBusy = preferenceOperation !== '';
   const bulkDisabled = isBulkActionDisabled(selected.size, preferenceBusy);
+  const bulkEnabling = preferenceOperation === 'agents:bulk:enabled';
+  const bulkDisabling = preferenceOperation === 'agents:bulk:disabled';
 
   const selectCurrentResults = () =>
     setSelected((current) => selectVisibleAgentIds(current, filteredAgents.map((agent) => agent.id)));
@@ -70,7 +73,7 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
   const doBulkEnabled = async (enabled: boolean) => {
     const ids = [...selected];
     if (ids.length === 0) return;
-    setBusy('agents:bulk');
+    setPreferenceOperation(`agents:bulk:${enabled ? 'enabled' : 'disabled'}`);
     try {
       const result = await api.setAgentsEnabled(ids, enabled);
       setAgents((current) => applyAgentEnabled(current, result.agents, result.enabled));
@@ -78,7 +81,7 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
     } catch (error) {
       onToast((error as Error).message, true);
     } finally {
-      setBusy('');
+      setPreferenceOperation('');
     }
   };
 
@@ -91,7 +94,7 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
 
   const toggleEnabled = async (agent: AgentInfo) => {
     const key = `${agent.id}:enabled`;
-    setBusy(key);
+    setPreferenceOperation(key);
     try {
       const result = await api.setAgentEnabled(agent.id, !agent.enabled);
       setAgents((prev) => prev.map((a) => a.id === agent.id ? { ...a, enabled: result.enabled } : a));
@@ -99,7 +102,7 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
     } catch (e) {
       onToast((e as Error).message, true);
     } finally {
-      setBusy('');
+      setPreferenceOperation('');
     }
   };
 
@@ -207,7 +210,7 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
             </span>
           ))}
         </div>
-        <div className="agent-bulk-actions">
+        <div className="agent-bulk-actions" aria-busy={preferenceBusy}>
           <span className="agent-selection-count">已选 {selected.size} 个</span>
           <button className="btn ghost" onClick={selectCurrentResults} disabled={preferenceBusy || filteredAgents.length === 0}>
             选择当前结果
@@ -216,10 +219,10 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
             清空选择
           </button>
           <button className="btn primary" onClick={() => doBulkEnabled(true)} disabled={bulkDisabled}>
-            批量启用 ({selected.size})
+            {bulkEnabling ? '启用中…' : `批量启用 (${selected.size})`}
           </button>
           <button className="btn danger" onClick={() => doBulkEnabled(false)} disabled={bulkDisabled}>
-            批量禁用 ({selected.size})
+            {bulkDisabling ? '禁用中…' : `批量禁用 (${selected.size})`}
           </button>
         </div>
       </div>
@@ -231,29 +234,43 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
           const list = byAgent.get(a.id) ?? [];
           const open = expanded.has(a.id);
           return (
-            <div className={`agent-card${a.installed ? '' : ' absent'}${selected.has(a.id) ? ' selected' : ''}`} key={a.id} style={{ opacity: a.enabled ? undefined : 0.45 }}>
-              <div className="agent-card-head" onClick={() => toggleAgent(a.id)}>
-                <input
-                  className="agent-select"
-                  type="checkbox"
-                  aria-label={`选择 ${a.name}`}
-                  checked={selected.has(a.id)}
-                  disabled={preferenceBusy}
-                  onClick={(event) => event.stopPropagation()}
-                  onChange={() => setSelected((current) => toggleAgentSelection(current, a.id))}
-                />
-                <div className="agent-card-name">
-                  {a.name}
-                  {!a.enabled && (
-                    <span className="badge" style={{ color: 'var(--red)', borderColor: 'rgba(255,107,107,0.4)' }}>已禁用</span>
-                  )}
-                  {a.installed ? (
-                    <span className="clone-tag">✓ {list.length} skills</span>
-                  ) : (
-                    <span className="badge">未安装 CLI</span>
-                  )}
-                </div>
-                <div className="agent-card-dir">{a.dir}</div>
+            <div className={`agent-card${selected.has(a.id) ? ' selected' : ''}${a.enabled ? '' : ' disabled'}`} key={a.id}>
+              <div className="agent-card-head">
+                <label className="agent-select-label" onClick={(event) => event.stopPropagation()}>
+                  <input
+                    className="agent-select"
+                    type="checkbox"
+                    aria-label={`选择 ${a.name}`}
+                    checked={selected.has(a.id)}
+                    disabled={preferenceBusy}
+                    onClick={(event) => event.stopPropagation()}
+                    onChange={() => setSelected((current) => toggleAgentSelection(current, a.id))}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="agent-card-summary"
+                  aria-label={`查看 ${a.name} 的 skills`}
+                  aria-expanded={open}
+                  aria-controls={`agent-${a.id}-details`}
+                  onClick={() => toggleAgent(a.id)}
+                >
+                  <div className="agent-card-summary-copy">
+                    <div className="agent-card-name">
+                      {a.name}
+                      {!a.enabled && (
+                        <span className="badge" style={{ color: 'var(--red)', borderColor: 'rgba(255,107,107,0.4)' }}>已禁用</span>
+                      )}
+                      {a.installed ? (
+                        <span className="clone-tag">✓ {list.length} skills</span>
+                      ) : (
+                        <span className="badge">未安装 CLI</span>
+                      )}
+                    </div>
+                    <div className="agent-card-dir">{a.dir}</div>
+                  </div>
+                  <span className="agent-chevron">{open ? '▴' : '▾'}</span>
+                </button>
                 <div className="agent-card-ops" onClick={(e) => e.stopPropagation()}>
                   <button
                     className="btn ghost"
@@ -273,11 +290,10 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
                       {busy === `${a.id}:all` ? '更新中…' : '⟳ 全部更新'}
                     </button>
                   )}
-                  <span className="agent-chevron">{open ? '▴' : '▾'}</span>
                 </div>
               </div>
               {open && a.installed && (
-                <div className="agent-card-body">
+                <div className="agent-card-body" id={`agent-${a.id}-details`}>
                   {list.length === 0 ? (
                     <div className="empty" style={{ padding: '20px' }}>该 agent 尚未安装任何 skill</div>
                   ) : (
@@ -312,7 +328,7 @@ export default function AgentsView({ onToast }: { onToast: (m: string, e?: boole
                 </div>
               )}
               {open && !a.installed && (
-                <div className="agent-card-body">
+                <div className="agent-card-body" id={`agent-${a.id}-details`}>
                   <div className="empty" style={{ padding: '20px' }}>未检测到该 agent 的 CLI（{a.dir}）</div>
                 </div>
               )}
