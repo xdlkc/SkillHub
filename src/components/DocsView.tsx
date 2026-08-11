@@ -26,6 +26,7 @@ npm run dev           # 前端 http://localhost:5173`}</pre>
             <tbody>
               <tr><td>排行榜</td><td><code>#/</code></td><td>全部仓库，Stars 降序，搜索/过滤/clone</td></tr>
               <tr><td>详情</td><td><code>#/skill/:id</code></td><td>安装命令 / README 预览 / 相关仓库 / 信息栏</td></tr>
+              <tr><td>Settings</td><td><code>#/settings</code></td><td>本地 SQLite 中的列表元数据自动同步开关（默认关闭）</td></tr>
               <tr><td>Topics</td><td><code>#/topics</code></td><td>按领域（8 类标签）浏览</td></tr>
               <tr><td>Topic</td><td><code>#/topic/:tag</code></td><td>某标签下的过滤榜单</td></tr>
               <tr><td>Packs</td><td><code>#/packs</code></td><td>按作者/组织聚合</td></tr>
@@ -43,6 +44,8 @@ npm run dev           # 前端 http://localhost:5173`}</pre>
             <thead><tr><th>方法</th><th>路径</th><th>说明</th></tr></thead>
             <tbody>
               <tr><td>GET</td><td><code>/api/skills</code></td><td>列表（Stars 降序）</td></tr>
+              <tr><td>GET</td><td><code>/api/settings</code></td><td>查询设置及列表元数据自动同步的生效状态</td></tr>
+              <tr><td>PATCH</td><td><code>/api/settings/metadata-auto-sync</code></td><td>设置列表元数据自动同步 <code>{'{enabled}'}</code></td></tr>
               <tr><td>POST</td><td><code>/api/skills</code></td><td>录入</td></tr>
               <tr><td>PATCH</td><td><code>/api/skills/:id</code></td><td>更新（打标/字段）</td></tr>
               <tr><td>DELETE</td><td><code>/api/skills/:id</code></td><td>删除（只删记录，不删本地目录）</td></tr>
@@ -70,6 +73,7 @@ npm run dev           # 前端 http://localhost:5173`}</pre>
         <div className="faq">
           <p><b>clone 到哪？</b> 默认 <code>{registry}</code>，可用环境变量 <code>SKILLS_REGISTRY</code> 覆盖。</p>
           <p><b>删除仓库会删本地代码吗？</b> 不会，只移除数据库记录，本地 clone 目录保留。</p>
+          <p><b>列表元数据自动同步会同步 skill 源码吗？</b> 不会。该开关只控制 <code>data/skills.json</code> 的导出、提交和推送，绝不会扫描、提交或推送已 clone 的 skill 源码仓库。</p>
           <p><b>录入时怎么自动填充？</b> 输入 <code>owner/repo</code> 点「拉取」，后端调用 <code>gh api</code> 获取真实元数据。</p>
           <p><b>Node 版本要求？</b> 后端使用内置 <code>node:sqlite</code>，需要 Node 22.13+。</p>
           <p><b>风格参考？</b> 致敬 <a href="https://www.skills.sh/" target="_blank" rel="noreferrer">skills.sh</a>（Vercel Agent Skills 目录）。</p>

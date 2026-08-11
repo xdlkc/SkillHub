@@ -37,7 +37,7 @@ npm run clone-all                    # 按同步的 clone 标记批量拉取缺�
 npm run import:prune
 ```
 
-> 页面内对列表的修改（录入/打标/删除/clone）即时写入本地 SQLite，**后端默认自动同步远端**：每次管理操作约 2.5 秒后自动 `export → git commit → git push`（commit 作者为 `SKILLS-INDEX Bot`）。关闭自动同步：`AUTO_SYNC=off npm run dev:server`，之后手动 `npm run export` + `git push`。页面顶部的「⧉ 批量 clone」按钮等价于 `npm run clone-all`。
+> 页面内的列表修改（录入/打标/删除/clone）会立即写入本地 SQLite。**列表元数据自动同步默认关闭**；可在 `#/settings` 开启，开启后的管理操作会在约 2.5 秒后执行 `export → git commit → git push`（commit 作者为 `SKILLS-INDEX Bot`）。自动同步只会暂存、提交并推送 `data/skills.json`，绝不会扫描、提交或推送已 clone 的 skill 源码仓库。`AUTO_SYNC=on` 会强制开启，`AUTO_SYNC=off` 会强制关闭；环境变量覆盖生效时，设置页面的开关只读。无论是否开启自动同步，仍可手动执行 `npm run export` + `git push`。页面顶部的「⧉ 批量 clone」按钮等价于 `npm run clone-all`。
 
 ## 技术栈
 
@@ -54,7 +54,7 @@ npm run dev:all      # 前后端一起启动
 # 或分开：npm run dev:server（后端 :8787）+ npm run dev（前端 :5173）
 ```
 
-> 环境变量：`SKILLS_REGISTRY`（clone 目录，默认 `~/Code/skills-registry`）、`AGENTS_HOME`（agent 安装探测基准，测试用）、`AUTO_SYNC`（自动同步开关，默认开）、`PORT`（后端端口，默认 8787）
+> 环境变量：`SKILLS_REGISTRY`（clone 目录，默认 `~/Code/skills-registry`）、`AGENTS_HOME`（agent 安装探测基准，测试用）、`AUTO_SYNC`（`on` 强制开启、`off` 强制关闭；未设置时读取本地 SQLite，首次使用默认关闭）、`PORT`（后端端口，默认 8787）
 
 ## 页面导航（Hash 路由）
 
@@ -63,6 +63,7 @@ npm run dev:all      # 前后端一起启动
 | 排行榜 | `#/` | 全部仓库，Stars 降序，搜索/过滤/clone |
 | **Skills** | `#/skills` | **skill 级条目**（扫描已 clone 仓库内的 SKILL.md），**安装到本地各 agent**、更新、diff、卸载 |
 | **Agents** | `#/agents` | **每个 agent 的 skill 管理**：来源/更新/卸载/diff/全部更新 |
+| **Settings** | `#/settings` | 保存在本地 SQLite 的列表元数据自动同步开关（默认关闭） |
 | **一键导入** | Header「⚡ 导入」 | 输入 owner/repo → 拉取元数据 + 入库 + clone 一条龙 |
 | **详情** | `#/skill/:id` | 安装命令 / Summary / 信息卡 / **README 预览**（本地 clone）/ 相关仓库 / 操作 |
 | Topics | `#/topics` | 按领域（8 类标签）浏览，点击进入过滤榜单 |
@@ -93,6 +94,8 @@ npm run dev:all      # 前后端一起启动
 | 方法 | 路径 | 说明 |
 |---|---|---|
 | GET | `/api/skills` | 列表（Stars 降序） |
+| GET | `/api/settings` | 查询设置及列表元数据自动同步的生效状态 |
+| PATCH | `/api/settings/metadata-auto-sync` | 设置列表元数据自动同步 `{enabled}` |
 | POST | `/api/skills` | 录入 `{full_name, desc, stars, lang, url, tags}` |
 | PATCH | `/api/skills/:id` | 更新（打标/改字段） |
 | DELETE | `/api/skills/:id` | 删除 |
