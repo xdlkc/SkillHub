@@ -6,7 +6,7 @@ import { ConfirmDialog } from './Modal';
 export default function SettingsView({
   onToast,
 }: {
-  onToast: (message: string, error?: boolean) => void;
+  onToast: (message: string, error?: boolean, announce?: boolean) => void;
 }) {
   const [setting, setSetting] = useState<MetadataAutoSyncSetting | null>(null);
   const [error, setError] = useState('');
@@ -16,6 +16,8 @@ export default function SettingsView({
   const readVersionRef = useRef(0);
   const mountedRef = useRef(false);
   const savingRef = useRef(false);
+  const switchRef = useRef<HTMLButtonElement>(null);
+  const restoreSwitchFocusRef = useRef(false);
 
   const load = useCallback(async () => {
     const readVersion = ++readVersionRef.current;
@@ -35,13 +37,24 @@ export default function SettingsView({
     void load();
     return () => {
       mountedRef.current = false;
+      restoreSwitchFocusRef.current = false;
       readVersionRef.current += 1;
     };
   }, [load]);
 
+  useEffect(() => {
+    if (saving || !restoreSwitchFocusRef.current) return;
+    restoreSwitchFocusRef.current = false;
+    const control = switchRef.current;
+    if (mountedRef.current && control?.isConnected && !control.disabled) {
+      control.focus({ preventScroll: true });
+    }
+  }, [saving]);
+
   const save = async (enabled: boolean) => {
     if (savingRef.current) return;
     savingRef.current = true;
+    restoreSwitchFocusRef.current = true;
     readVersionRef.current += 1;
     setSaving(true);
     setFeedback(null);
@@ -53,12 +66,12 @@ export default function SettingsView({
         ? '已开启列表元数据自动同步'
         : '已关闭列表元数据自动同步，待执行同步已取消';
       setFeedback({ message, error: false });
-      onToast(message);
+      onToast(message, false, false);
     } catch (e) {
       if (!mountedRef.current) return;
       const message = `更新设置失败：${(e as Error).message}`;
       setFeedback({ message, error: true });
-      onToast(message, true);
+      onToast(message, true, false);
     } finally {
       savingRef.current = false;
       if (mountedRef.current) setSaving(false);
@@ -126,6 +139,7 @@ export default function SettingsView({
             <div className="settings-control">
               {saving && <span className="settings-saving" aria-live="polite">保存中…</span>}
               <button
+                ref={switchRef}
                 className="settings-switch"
                 type="button"
                 role="switch"

@@ -41,10 +41,10 @@ export default function App() {
   const [delSkill, setDelSkill] = useState<Skill | null>(null);
   const [importOpen, setImportOpen] = useState(false);
 
-  const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
+  const [toast, setToast] = useState<{ msg: string; error?: boolean; announce: boolean } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const showToast = useCallback((msg: string, error = false) => {
-    setToast({ msg, error });
+  const showToast = useCallback((msg: string, error = false, announce = true) => {
+    setToast({ msg, error, announce });
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 2200);
   }, []);
@@ -297,9 +297,9 @@ export default function App() {
 
       <div
         className={`toast${toast?.error ? ' error' : ''}${toast ? ' show' : ''}`}
-        role={toast?.error ? 'alert' : 'status'}
-        aria-live={toast?.error ? 'assertive' : 'polite'}
-        aria-atomic="true"
+        role={toast?.announce === false ? undefined : toast?.error ? 'alert' : 'status'}
+        aria-live={toast?.announce === false ? 'off' : toast?.error ? 'assertive' : 'polite'}
+        aria-atomic={toast?.announce === false ? undefined : 'true'}
       >
         {toast?.msg}
       </div>
