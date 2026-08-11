@@ -294,8 +294,13 @@ const server = createServer(async (req, res) => {
     }
 
     if (method === 'PATCH' && p === '/api/settings/metadata-auto-sync') {
-      const b = await readBody(req);
-      if (typeof b.enabled !== 'boolean') {
+      let b;
+      try {
+        b = await readBody(req);
+      } catch (e) {
+        return send(res, 400, { error: e.message });
+      }
+      if (b === null || typeof b !== 'object' || Array.isArray(b) || typeof b.enabled !== 'boolean') {
         return send(res, 400, { error: 'enabled 必须是布尔值' });
       }
       try {

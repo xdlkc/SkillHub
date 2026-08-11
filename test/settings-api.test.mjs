@@ -2,11 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-const PROJECT_ROOT = path.resolve(import.meta.dirname, '..');
+const SOURCE_PROJECT_ROOT = path.resolve(import.meta.dirname, '..');
+const SOURCE_SERVER_DIR = path.join(SOURCE_PROJECT_ROOT, 'server');
 
 async function findFreePort() {
   const probe = createServer();
@@ -47,7 +48,7 @@ async function stopServer(child) {
   await exited;
 }
 
-async function startServer({ dbPath, registryPath, autoSync }) {
+async function startServer({ projectRoot, dbPath, registryPath, autoSync }) {
   const port = await findFreePort();
   const env = {
     ...process.env,
@@ -59,7 +60,7 @@ async function startServer({ dbPath, registryPath, autoSync }) {
   if (autoSync !== undefined) env.AUTO_SYNC = autoSync;
 
   const child = spawn(process.execPath, ['server/index.mjs'], {
-    cwd: PROJECT_ROOT,
+    cwd: projectRoot,
     env,
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -75,7 +76,9 @@ async function startServer({ dbPath, registryPath, autoSync }) {
         throw new Error(`server exited before becoming ready\n${output}`);
       }
       try {
-        const response = await fetch(`${baseUrl}/api/stats`);
+        const response = await fetch(`${baseUrl}/api/stats`, {
+          signal: AbortSignal.timeout(1000),
+        });
         if (response.status === 200) return { child, baseUrl };
       } catch {
         // The process may still be binding its port.
@@ -89,9 +92,36 @@ async function startServer({ dbPath, registryPath, autoSync }) {
   }
 }
 
+async function createFixture(t, prefix) {
+  const projectRoot = await mkdtemp(path.join(os.tmpdir(), prefix));
+  const dbPath = path.join(projectRoot, 'data', 'skills.db');
+  const registryPath = path.join(projectRoot, 'registry');
+  let running;
+
+  const fixture = {
+    async start(autoSync) {
+      running = await startServer({ projectRoot, dbPath, registryPath, autoSync });
+      return running;
+    },
+    async stop() {
+      if (!running) return;
+      await stopServer(running.child);
+      running = undefined;
+    },
+  };
+
+  t.after(async () => {
+    await fixture.stop();
+    await rm(projectRoot, { recursive: true, force: true });
+  });
+  await cp(SOURCE_SERVER_DIR, path.join(projectRoot, 'server'), { recursive: true });
+  return fixture;
+}
+
 async function request(baseUrl, pathname, options = {}) {
   const response = await fetch(`${baseUrl}${pathname}`, {
     ...options,
+    signal: options.signal ?? AbortSignal.timeout(5000),
     headers: options.body
       ? { 'Content-Type': 'application/json', ...options.headers }
       : options.headers,
@@ -99,17 +129,32 @@ async function request(baseUrl, pathname, options = {}) {
   return { status: response.status, body: await response.json() };
 }
 
-test('metadata auto-sync defaults off, validates writes, and persists across restart', async (t) => {
-  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'skills-settings-api-'));
-  const dbPath = path.join(tempDir, 'skills.db');
-  const registryPath = path.join(tempDir, 'registry');
-  let running;
-  t.after(async () => {
-    if (running) await stopServer(running.child);
-    await rm(tempDir, { recursive: true, force: true });
+test('metadata auto-sync PATCH rejects JSON null with 400', async (t) => {
+  const fixture = await createFixture(t, 'skills-settings-null-');
+  const running = await fixture.start();
+  const response = await request(running.baseUrl, '/api/settings/metadata-auto-sync', {
+    method: 'PATCH',
+    body: 'null',
   });
 
-  running = await startServer({ dbPath, registryPath });
+  assert.equal(response.status, 400);
+  assert.deepEqual(response.body, { error: 'enabled 必须是布尔值' });
+});
+
+test('metadata auto-sync PATCH rejects malformed JSON with 400', async (t) => {
+  const fixture = await createFixture(t, 'skills-settings-malformed-');
+  const running = await fixture.start();
+  const response = await request(running.baseUrl, '/api/settings/metadata-auto-sync', {
+    method: 'PATCH',
+    body: '{',
+  });
+
+  assert.equal(response.status, 400);
+});
+
+test('metadata auto-sync defaults off, validates writes, and persists across restart', async (t) => {
+  const fixture = await createFixture(t, 'skills-settings-api-');
+  let running = await fixture.start();
 
   assert.deepEqual(await request(running.baseUrl, '/api/settings'), {
     status: 200,
@@ -144,8 +189,8 @@ test('metadata auto-sync defaults off, validates writes, and persists across res
     },
   });
 
-  await stopServer(running.child);
-  running = await startServer({ dbPath, registryPath });
+  await fixture.stop();
+  running = await fixture.start();
 
   assert.deepEqual(await request(running.baseUrl, '/api/settings'), {
     status: 200,
@@ -161,25 +206,17 @@ test('metadata auto-sync defaults off, validates writes, and persists across res
 
 for (const [autoSync, lockedEnabled] of [['on', true], ['off', false]]) {
   test(`AUTO_SYNC=${autoSync} locks the effective setting without overwriting SQLite`, async (t) => {
-    const tempDir = await mkdtemp(path.join(os.tmpdir(), `skills-settings-${autoSync}-`));
-    const dbPath = path.join(tempDir, 'skills.db');
-    const registryPath = path.join(tempDir, 'registry');
-    let running;
-    t.after(async () => {
-      if (running) await stopServer(running.child);
-      await rm(tempDir, { recursive: true, force: true });
-    });
-
-    running = await startServer({ dbPath, registryPath });
+    const fixture = await createFixture(t, `skills-settings-${autoSync}-`);
+    let running = await fixture.start();
 
     const databaseEnabled = !lockedEnabled;
     assert.equal((await request(running.baseUrl, '/api/settings/metadata-auto-sync', {
       method: 'PATCH',
       body: JSON.stringify({ enabled: databaseEnabled }),
     })).status, 200);
-    await stopServer(running.child);
+    await fixture.stop();
 
-    running = await startServer({ dbPath, registryPath, autoSync });
+    running = await fixture.start(autoSync);
     assert.deepEqual(await request(running.baseUrl, '/api/settings'), {
       status: 200,
       body: {
@@ -197,9 +234,9 @@ for (const [autoSync, lockedEnabled] of [['on', true], ['off', false]]) {
     });
     assert.equal(lockedPatch.status, 409);
     assert.match(lockedPatch.body.error, /AUTO_SYNC/);
-    await stopServer(running.child);
+    await fixture.stop();
 
-    running = await startServer({ dbPath, registryPath });
+    running = await fixture.start();
     assert.deepEqual(await request(running.baseUrl, '/api/settings'), {
       status: 200,
       body: {
