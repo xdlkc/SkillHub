@@ -10,6 +10,7 @@ export type Route =
   | { name: 'pack'; owner: string }
   | { name: 'official' }
   | { name: 'docs' }
+  | { name: 'settings' }
   | { name: 'skill'; id: number }
   | { name: 'notfound' };
 
@@ -25,6 +26,7 @@ export function parseHash(h: string): Route {
     case 'pack': return parts[1] ? { name: 'pack', owner: decodeURIComponent(parts[1]) } : { name: 'packs' };
     case 'official': return { name: 'official' };
     case 'docs': return { name: 'docs' };
+    case 'settings': return { name: 'settings' };
     case 'skill': {
       const id = Number(parts[1]);
       return Number.isFinite(id) && id > 0 ? { name: 'skill', id } : { name: 'notfound' };
@@ -61,6 +63,7 @@ export function routeLabel(r: Route): string {
     case 'pack': return `Pack · ${r.owner}`;
     case 'official': return 'Official';
     case 'docs': return 'Docs';
+    case 'settings': return '设置';
     case 'skill': return '详情';
     default: return '';
   }
@@ -74,5 +77,6 @@ export function activeTab(r: Route): string | null {
   if (r.name === 'pack' || r.name === 'packs') return 'packs';
   if (r.name === 'official') return 'official';
   if (r.name === 'docs') return 'docs';
+  if (r.name === 'settings') return 'settings';
   return null;
 }

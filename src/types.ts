@@ -70,6 +70,18 @@ export interface CloneState {
   status?: string;
 }
 
+export type SettingSource = 'default' | 'database' | 'environment';
+
+export interface MetadataAutoSyncSetting {
+  enabled: boolean;
+  locked: boolean;
+  source: SettingSource;
+}
+
+export interface AppSettings {
+  metadata_auto_sync: MetadataAutoSyncSetting;
+}
+
 export const TAG_META: Record<string, { label: string; cls: string }> = {
   official: { label: '官方', cls: 'official' },
   collection: { label: '合集', cls: 'collection' },

@@ -31,24 +31,23 @@ import {
   getAgentsWithPreferences,
   updateAgentPreferences,
 } from './agent-prefs.mjs';
+import { createAutoSyncController } from './auto-sync.mjs';
+import { syncMetadataGit } from './git-sync.mjs';
 
 // Node 22 下 node:sqlite 会打印 ExperimentalWarning，屏蔽噪音
 process.removeAllListeners('warning');
 
 const PORT = process.env.PORT || 8787;
 const REGISTRY = process.env.SKILLS_REGISTRY || path.join(os.homedir(), 'Code', 'skills-registry');
-const DB_PATH = path.join(import.meta.dirname, '..', 'data', 'skills.db');
+const DB_PATH = process.env.SKILLS_DB_PATH || path.join(import.meta.dirname, '..', 'data', 'skills.db');
 const PROJECT_ROOT = path.join(import.meta.dirname, '..');
 const JSON_PATH = path.join(PROJECT_ROOT, 'data', 'skills.json');
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 fs.mkdirSync(REGISTRY, { recursive: true });
 
 /* =============== 自动同步：操作 → export skills.json → git push =============== */
-const AUTO_SYNC = process.env.AUTO_SYNC !== 'off'; // 默认开启，AUTO_SYNC=off 关闭
 const GIT_NAME = process.env.SYNC_GIT_NAME || 'SKILLS-INDEX Bot';
 const GIT_EMAIL = process.env.SYNC_GIT_EMAIL || 'skills-bot@users.noreply.github.com';
-let syncTimer = null;
-let syncDirty = false;
 
 function exportJsonNow() {
   try {
@@ -72,33 +71,18 @@ function exportJsonNow() {
 }
 
 async function pushJsonNow() {
-  try {
-    // 有变更才提交
-    const { stdout: diff } = await exec('git', ['-C', PROJECT_ROOT, 'status', '--porcelain', '--', 'data/skills.json']);
-    if (!diff.trim()) return { pushed: false, reason: 'no-change' };
-    await exec('git', ['-C', PROJECT_ROOT, 'add', 'data/skills.json']);
-    await exec('git', ['-C', PROJECT_ROOT, '-c', `user.name=${GIT_NAME}`, '-c', `user.email=${GIT_EMAIL}`, 'commit', '-m', 'auto-sync: 列表更新（后端自动同步）']);
-    const { stdout: pushOut } = await exec('git', ['-C', PROJECT_ROOT, 'push'], { timeout: 60000 });
-    console.log('[auto-sync] 已推送远端:', pushOut.trim().split('\n').slice(-1)[0]);
-    return { pushed: true };
-  } catch (e) {
-    console.error('[auto-sync] push 失败（稍后操作会重试）:', e.message.split('\n')[0]);
-    return { pushed: false, reason: e.message.split('\n')[0] };
+  const result = await syncMetadataGit({
+    projectRoot: PROJECT_ROOT,
+    gitName: GIT_NAME,
+    gitEmail: GIT_EMAIL,
+    commitMessage: 'auto-sync: 列表更新（后端自动同步）',
+  });
+  if (result.pushed) {
+    console.log('[auto-sync] 已推送远端:', result.output || result.commit);
+  } else if (result.reason !== 'no-change') {
+    console.error('[auto-sync] push 未执行（稍后操作会重试）:', result.reason);
   }
-}
-
-/** 标记数据变更：防抖 2.5s 后 export + push */
-function markDirty() {
-  if (!AUTO_SYNC) return;
-  syncDirty = true;
-  if (syncTimer) clearTimeout(syncTimer);
-  syncTimer = setTimeout(async () => {
-    syncTimer = null;
-    if (!syncDirty) return;
-    syncDirty = false;
-    if (!exportJsonNow()) return;
-    await pushJsonNow();
-  }, 2500);
+  return result;
 }
 
 const exec = promisify(execFile);
@@ -131,7 +115,22 @@ db.exec(`
     agent   TEXT PRIMARY KEY,
     enabled INTEGER NOT NULL DEFAULT 1
   );
+  CREATE TABLE IF NOT EXISTS app_settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
 `);
+
+const autoSync = createAutoSyncController({
+  db,
+  envValue: process.env.AUTO_SYNC,
+  exportNow: exportJsonNow,
+  pushNow: pushJsonNow,
+});
+
+function markDirty() {
+  autoSync.markDirty();
+}
 
 const FULLNAME_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 
@@ -296,6 +295,31 @@ const server = createServer(async (req, res) => {
   if (method === 'OPTIONS') return send(res, 204, {});
 
   try {
+    if (method === 'GET' && p === '/api/settings') {
+      return send(res, 200, { metadata_auto_sync: autoSync.getState() });
+    }
+
+    if (method === 'PATCH' && p === '/api/settings/metadata-auto-sync') {
+      let b;
+      try {
+        b = await readBody(req);
+      } catch (e) {
+        return send(res, 400, { error: e.message });
+      }
+      if (b === null || typeof b !== 'object' || Array.isArray(b) || typeof b.enabled !== 'boolean') {
+        return send(res, 400, { error: 'enabled 必须是布尔值' });
+      }
+      try {
+        const state = autoSync.setEnabled(b.enabled);
+        return send(res, 200, { metadata_auto_sync: state });
+      } catch (e) {
+        if (e.code === 'AUTO_SYNC_LOCKED') {
+          return send(res, 409, { error: e.message });
+        }
+        throw e;
+      }
+    }
+
     /* 列表 */
     if (method === 'GET' && p === '/api/skills') {
       const rows = db.prepare('SELECT * FROM skills ORDER BY stars DESC').all();

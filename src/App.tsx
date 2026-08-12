@@ -13,6 +13,7 @@ import ImportModal from './components/ImportModal';
 import TopicsView from './components/TopicsView';
 import PacksView, { PackView } from './components/PacksView';
 import DocsView from './components/DocsView';
+import SettingsView from './components/SettingsView';
 import SkillForm from './components/SkillForm';
 import TagEditor from './components/TagEditor';
 import { ConfirmDialog } from './components/Modal';
@@ -26,6 +27,7 @@ const TABS: { key: string; label: string; href: string }[] = [
   { key: 'packs', label: 'Packs', href: '/packs' },
   { key: 'official', label: 'Official', href: '/official' },
   { key: 'docs', label: 'Docs', href: '/docs' },
+  { key: 'settings', label: '设置', href: '/settings' },
 ];
 
 export default function App() {
@@ -39,10 +41,10 @@ export default function App() {
   const [delSkill, setDelSkill] = useState<Skill | null>(null);
   const [importOpen, setImportOpen] = useState(false);
 
-  const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
+  const [toast, setToast] = useState<{ msg: string; error?: boolean; announce: boolean } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const showToast = useCallback((msg: string, error = false) => {
-    setToast({ msg, error });
+  const showToast = useCallback((msg: string, error = false, announce = true) => {
+    setToast({ msg, error, announce });
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 2200);
   }, []);
@@ -176,12 +178,20 @@ export default function App() {
       <header>
         <div className="wrap nav">
           <div className="logo" onClick={() => navigate('/')}>
-            <span className="mark">▚</span>SKILLS<b>·INDEX</b>
+            <span className="mark">▚</span>
+            <span className="logo-wordmark">SKILLS<b>·INDEX</b></span>
           </div>
           <div className="spacer" />
           <nav className="nav-links">
             {TABS.map((t) => (
-              <a key={t.key} href={`#${t.href}`} className={tab === t.key ? 'active' : ''}>{t.label}</a>
+              <a
+                key={t.key}
+                href={`#${t.href}`}
+                className={tab === t.key ? 'active' : ''}
+                aria-current={tab === t.key ? 'page' : undefined}
+              >
+                {t.label}
+              </a>
             ))}
             <button onClick={() => setImportOpen(true)} style={{ color: 'var(--acid)' }}>⚡ 导入</button>
             <button onClick={handleCloneAll} title="按同步的 clone 标记批量拉取仓库">⧉ 批量 clone</button>
@@ -232,6 +242,7 @@ export default function App() {
         {route.name === 'packs' && <PacksView skills={skills} />}
         {route.name === 'pack' && <PackView owner={route.owner} skills={skills} callbacks={callbacks} />}
         {route.name === 'docs' && <DocsView registry={stats.registry} />}
+        {route.name === 'settings' && <SettingsView onToast={showToast} />}
 
         {route.name === 'skill' && detailSkill && (
           <DetailView
@@ -284,7 +295,14 @@ export default function App() {
         />
       )}
 
-      <div className={`toast${toast?.error ? ' error' : ''}${toast ? ' show' : ''}`}>{toast?.msg}</div>
+      <div
+        className={`toast${toast?.error ? ' error' : ''}${toast ? ' show' : ''}`}
+        role={toast?.announce === false ? undefined : toast?.error ? 'alert' : 'status'}
+        aria-live={toast?.announce === false ? 'off' : toast?.error ? 'assertive' : 'polite'}
+        aria-atomic={toast?.announce === false ? undefined : 'true'}
+      >
+        {toast?.msg}
+      </div>
     </>
   );
 }

@@ -9,7 +9,7 @@
     "dev:server": "node server/index.mjs",
     "dev:all": "node scripts/dev.mjs",
     "build": "tsc -b && vite build",
-    "test": "vitest run",
+    "test": "vitest run && node --experimental-strip-types --test test/*.test.mjs",
     "preview": "vite preview",
     "seed": "node server/seed.mjs",
     "export": "node scripts/sync.mjs export",

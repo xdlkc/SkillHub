@@ -1,4 +1,4 @@
-import type { Skill, Stats, CloneState, SkillItem, AgentInfo, InstalledItem, DiffEntry, InstallAllResult } from './types';
+import type { Skill, Stats, CloneState, SkillItem, AgentInfo, InstalledItem, DiffEntry, InstallAllResult, AppSettings } from './types';
 
 export interface ReadmeData {
   cloned: boolean;
@@ -86,6 +86,12 @@ export const api = {
     req<{ installed: boolean; diff: DiffEntry[] | null }>('/api/skills/items/diff', {
       method: 'POST',
       body: JSON.stringify({ repo_id, path, agent }),
+    }),
+  settings: () => req<AppSettings>('/api/settings'),
+  setMetadataAutoSync: (enabled: boolean) =>
+    req<AppSettings>('/api/settings/metadata-auto-sync', {
+      method: 'PATCH',
+      body: JSON.stringify({ enabled }),
     }),
   rescan: () => req<{ ok: boolean; updated: number; registry: string }>('/api/rescan', { method: 'POST' }),
   fetchGithub: (repo: string) => req<{ full_name: string; stars: number; desc: string; lang: string; url: string }>(`/api/fetch?repo=${encodeURIComponent(repo)}`),
