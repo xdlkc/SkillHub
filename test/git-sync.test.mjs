@@ -106,7 +106,7 @@ async function createFixture(t) {
 function syncWith(syncFunction, work) {
   return syncFunction({
     projectRoot: work,
-    gitName: 'SKILLS-INDEX Bot',
+    gitName: 'SkillHub Bot',
     gitEmail: 'skills-bot@users.noreply.github.com',
     commitMessage: 'auto-sync: metadata test',
   });
@@ -660,7 +660,7 @@ test('applies the configured timeout to every Git subprocess', async (t) => {
 
   const result = await isolatedSync({
     projectRoot: fixture.work,
-    gitName: 'SKILLS-INDEX Bot',
+    gitName: 'SkillHub Bot',
     gitEmail: 'skills-bot@users.noreply.github.com',
     commitMessage: 'auto-sync: metadata test',
     timeout: 4321,

@@ -179,7 +179,7 @@ export default function App() {
         <div className="wrap nav">
           <div className="logo" onClick={() => navigate('/')}>
             <span className="mark">▚</span>
-            <span className="logo-wordmark">SKILLS<b>·INDEX</b></span>
+            <span className="logo-wordmark">SKILL<b>HUB</b></span>
           </div>
           <div className="spacer" />
           <nav className="nav-links">
@@ -274,7 +274,7 @@ export default function App() {
       </main>
 
       <footer>
-        <div>SKILLS·INDEX — 数据存于本地 SQLite，clone 目录 {stats.registry}</div>
+        <div>SkillHub — 数据存于本地 SQLite，clone 目录 {stats.registry}</div>
         <div>风格致敬 <a href="https://www.skills.sh/" target="_blank" rel="noreferrer">skills.sh</a> · 数据源 <a href="https://github.com/vercel-labs/skills" target="_blank" rel="noreferrer">vercel-labs/skills</a></div>
       </footer>
 

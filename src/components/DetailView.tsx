@@ -114,7 +114,7 @@ export default function DetailView({
     <div className="detail">
       {/* 面包屑 */}
       <div className="crumbs">
-        <a onClick={() => navigate('/')}>SKILLS·INDEX</a>
+        <a onClick={() => navigate('/')}>SkillHub</a>
         <span className="sep">/</span>
         <a onClick={() => navigate(`/pack/${encodeURIComponent(owner)}`)}>{owner}</a>
         <span className="sep">/</span>

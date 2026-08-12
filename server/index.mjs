@@ -1,5 +1,5 @@
 /**
- * SKILLS·INDEX 后端 —— 零 npm 依赖
+ * SkillHub 后端 —— 零 npm 依赖
  * node:http + node:sqlite (Node 22.13+) + git clone
  *
  * API:
@@ -46,7 +46,7 @@ fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 fs.mkdirSync(REGISTRY, { recursive: true });
 
 /* =============== 自动同步：操作 → export skills.json → git push =============== */
-const GIT_NAME = process.env.SYNC_GIT_NAME || 'SKILLS-INDEX Bot';
+const GIT_NAME = process.env.SYNC_GIT_NAME || 'SkillHub Bot';
 const GIT_EMAIL = process.env.SYNC_GIT_EMAIL || 'skills-bot@users.noreply.github.com';
 
 function exportJsonNow() {

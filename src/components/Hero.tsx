@@ -34,8 +34,8 @@ export default function Hero({ stats, onCopy }: { stats: Stats; onCopy: (t: stri
       <div className="kicker"><span className="dot" />Open Agent Skills Ecosystem · 本地管理台</div>
       <h1>
         <span className="outline">AGENT</span><br />
-        <span className="acid">SKILLS</span> <span className="outline">//</span><br />
-        <span className="outline">INDEX</span>
+        <span className="acid">SKILL</span> <span className="outline">//</span><br />
+        <span className="outline">HUB</span>
       </h1>
       <p className="sub">
         收录 GitHub 高热度 <b>AI Agent Skills</b> 仓库。支持 <b>录入</b>、<b>打标</b>、<b>删除</b>，

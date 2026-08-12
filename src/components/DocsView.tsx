@@ -3,7 +3,7 @@ export default function DocsView({ registry }: { registry: string }) {
     <div>
       <div className="page-head">
         <h2 className="page-title">Docs</h2>
-        <p className="page-desc">SKILLS·INDEX 本地管理台的用法、架构与 API 参考。</p>
+        <p className="page-desc">SkillHub 本地管理台的用法、架构与 API 参考。</p>
       </div>
 
       <section className="doc-section">

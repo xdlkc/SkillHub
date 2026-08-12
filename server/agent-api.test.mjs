@@ -41,7 +41,7 @@ async function patchAgents(body) {
 }
 
 beforeAll(async () => {
-  tempRoot = mkdtempSync(path.join(tmpdir(), 'skills-leaderboard-agent-api-'));
+  tempRoot = mkdtempSync(path.join(tmpdir(), 'skill-hub-agent-api-'));
   cpSync(new URL('./', import.meta.url), path.join(tempRoot, 'server'), { recursive: true });
   mkdirSync(path.join(tempRoot, 'data'));
   const port = await reservePort();

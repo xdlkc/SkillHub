@@ -1,12 +1,12 @@
-# SKILLS·INDEX — Agent Skills 仓库管理台
+# SkillHub — Agent Skills 仓库管理台
 
 深色终端美学的 **AI Agent Skills 仓库管理后台**：收录 GitHub 高热度 skill 仓库，支持录入、打标、删除、一键导入/克隆、安装到本地各 agent（含更新/diff），数据可通过 git pull/push 在**多台电脑间同步**。
 
 ## 🚀 全新电脑启动
 
 ```bash
-git clone https://github.com/xdlkc/skills-leaderboard.git   # 私有仓库需已配置 GitHub 认证
-cd skills-leaderboard
+git clone https://github.com/xdlkc/SkillHub.git
+cd SkillHub
 npm install          # 安装前端依赖
 npm run setup:first  # 一键：import（恢复列表+clone 标记）+ clone-all（批量拉取标记仓库）
 npm run dev:all      # 同时启动后端(:8787) + 前端(:5173)
@@ -37,7 +37,7 @@ npm run clone-all                    # 按同步的 clone 标记批量拉取缺�
 npm run import:prune
 ```
 
-> 页面内的列表修改（录入/打标/删除/clone）会立即写入本地 SQLite。**列表元数据自动同步默认关闭**；可在 `#/settings` 开启，开启后的管理操作会在约 2.5 秒后执行 `export → git commit → git push`（commit 作者为 `SKILLS-INDEX Bot`）。自动同步只会暂存、提交并推送 `data/skills.json`，绝不会扫描、提交或推送已 clone 的 skill 源码仓库；若当前分支没有上游、落后于上游或含非 `data/skills.json` 的待推送提交，则会安全拒绝且不会改动其他暂存/未暂存文件。`AUTO_SYNC=on` 会强制开启，`AUTO_SYNC=off` 会强制关闭；环境变量覆盖生效时，设置页面的开关只读。无论是否开启自动同步，仍可按上方流程手动执行 `npm run export` → `git add data/skills.json` → `git commit` → `git push`。页面顶部的「⧉ 批量 clone」按钮等价于 `npm run clone-all`。
+> 页面内的列表修改（录入/打标/删除/clone）会立即写入本地 SQLite。**列表元数据自动同步默认关闭**；可在 `#/settings` 开启，开启后的管理操作会在约 2.5 秒后执行 `export → git commit → git push`（commit 作者为 `SkillHub Bot`）。自动同步只会暂存、提交并推送 `data/skills.json`，绝不会扫描、提交或推送已 clone 的 skill 源码仓库；若当前分支没有上游、落后于上游或含非 `data/skills.json` 的待推送提交，则会安全拒绝且不会改动其他暂存/未暂存文件。`AUTO_SYNC=on` 会强制开启，`AUTO_SYNC=off` 会强制关闭；环境变量覆盖生效时，设置页面的开关只读。无论是否开启自动同步，仍可按上方流程手动执行 `npm run export` → `git add data/skills.json` → `git commit` → `git push`。页面顶部的「⧉ 批量 clone」按钮等价于 `npm run clone-all`。
 
 ## 技术栈
 
@@ -109,7 +109,7 @@ npm run dev:all      # 前后端一起启动
 ## 目录结构
 
 ```
-skills-leaderboard/
+SkillHub/
 ├── index.html              # Vite 入口
 ├── server/
 │   ├── index.mjs           # 后端（http + sqlite + git）
