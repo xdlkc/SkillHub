@@ -1,131 +1,162 @@
-# SkillHub — Agent Skills 仓库管理台
+# SkillHub
 
-深色终端美学的 **AI Agent Skills 仓库管理后台**：收录 GitHub 高热度 skill 仓库，支持录入、打标、删除、一键导入/克隆、安装到本地各 agent（含更新/diff），数据可通过 git pull/push 在**多台电脑间同步**。
+English | [简体中文](./README.zh-CN.md)
 
-## 🚀 全新电脑启动
+A local web registry and management workbench for AI Agent skills repositories. Catalog GitHub skill repos, tag and filter collections, shallow-clone repositories to a local registry, inspect `SKILL.md` / `README.md` files, install/update/diff skills across 73 supported local agents, and synchronize catalog metadata across machines via Git.
+
+## Quick Start (Fresh Machine)
+
+Requires **Node.js 22.13+** (for built-in `node:sqlite`), `git`, and an authenticated `gh` CLI (`gh auth login`) if fetching repository metadata from GitHub.
 
 ```bash
 git clone https://github.com/xdlkc/SkillHub.git
 cd SkillHub
-npm install          # 安装前端依赖
-npm run setup:first  # 一键：import（恢复列表+clone 标记）+ clone-all（批量拉取标记仓库）
-npm run dev:all      # 同时启动后端(:8787) + 前端(:5173)
+npm install          # Frontend/test dependencies only; backend uses zero npm dependencies
+npm run setup:first  # Imports data/skills.json into SQLite and clones flagged repos
+npm run dev:all      # Starts backend (:8787) and Vite frontend (:5173)
 ```
 
-打开 http://localhost:5173 。`setup:first` 会把另一台机器已 clone 的仓库全部拉到本地（已有目录自动跳过），无需手动一个个点。
+Open `http://localhost:5173`. `setup:first` runs `npm run import && npm run clone-all`, pulling all repositories marked `cloned: true` in [`data/skills.json`](./data/skills.json) into `~/Code/skills-registry/` while skipping existing clones.
 
-## 🔄 多机同步（pull / push）
-
-> 设计：**`data/skills.json` 是 git 跟踪的同步载体**（共享元数据：名称/Star/描述/语言/标签 + **clone 布尔标记**，不含本地绝对路径）；SQLite（`data/skills.db`）是本地运行缓存，不入 git；skill 仓库 clone 在 `~/Code/skills-registry/`，也不入 git。
-
-**本机修改列表后（录入/打标/删除/更新 Star 等）→ 推送到远端：**
+### Alternative Development Startup
 
 ```bash
-npm run export                       # db → data/skills.json（含 clone 标记）
+npm install
+npm run seed         # Optional: idempotently seed 115 starter repos from data/skills-seed.json
+npm run dev:all      # Or run separately: npm run dev:server (:8787) + npm run dev (:5173)
+```
+
+Build and test commands:
+
+```bash
+npm run build        # tsc -b && vite build
+npm test             # Vitest unit/component tests + Node native tests in test/*.test.mjs
+```
+
+## Architecture & Stack
+
+- **Frontend**: Vite 5 + React 18 + TypeScript with custom CSS (zero UI library dependencies) on `:5173`, proxying `/api` to `:8787`.
+- **Backend**: Native `node:http` + `node:sqlite` + child-process `git` / `gh` / `diff` calls on `:8787` (zero backend npm dependencies).
+- **Local Registry**: Shallow clones (`git clone --depth 1`) stored under `~/Code/skills-registry/{owner}-{repo}` (configurable via `SKILLS_REGISTRY`).
+- **Agent Distribution**: Follows the `npx skills` target-directory convention across **73 agents** defined in [`server/agents.mjs`](./server/agents.mjs) (including Claude Code, Codex, Cursor, Gemini CLI, OpenCode, Windsurf, Cline, Goose, Hermes Agent, Antigravity, etc.) in copy mode, tracking provenance in SQLite (`installed_items`) for updates and `diff -u` comparisons.
+
+## Multi-Machine Sync Workflow
+
+- [`data/skills.json`](./data/skills.json) (currently `version: 1`, 115 repositories) is the Git-tracked sync file holding shared metadata (`full_name`, `stars`, `desc`, `lang`, `url`, `tags`, and boolean `cloned` flag) without machine-local paths.
+- `data/skills.db` is the local SQLite runtime database (git-ignored).
+- Cloned skill repositories live outside Git under `~/Code/skills-registry/`.
+
+### Manual Push & Pull
+
+After editing, tagging, adding, or cloning repos on Machine A:
+
+```bash
+npm run export
 git add data/skills.json
-git commit -m "sync: 更新列表"
+git commit -m "sync: update skills catalog"
 git push
 ```
 
-**对端电脑拉取更新：**
+On Machine B:
 
 ```bash
 git pull
-npm run import                       # skills.json → db（upsert + clone 标记，不删本地）
-npm run clone-all                    # 按同步的 clone 标记批量拉取缺失仓库（已存在自动跳过）
-# 想完全以远端为准（删除本地多余条目）：
+npm run import       # Upserts data/skills.json into local SQLite without deleting local-only rows
+npm run clone-all    # Shallow-clones repos marked cloned=1 (or click Batch Clone in header)
+# To mirror the remote catalog strictly (delete local rows missing from skills.json):
 npm run import:prune
 ```
 
-> 页面内的列表修改（录入/打标/删除/clone）会立即写入本地 SQLite。**列表元数据自动同步默认关闭**；可在 `#/settings` 开启，开启后的管理操作会在约 2.5 秒后执行 `export → git commit → git push`（commit 作者为 `SkillHub Bot`）。自动同步只会暂存、提交并推送 `data/skills.json`，绝不会扫描、提交或推送已 clone 的 skill 源码仓库；若当前分支没有上游、落后于上游或含非 `data/skills.json` 的待推送提交，则会安全拒绝且不会改动其他暂存/未暂存文件。`AUTO_SYNC=on` 会强制开启，`AUTO_SYNC=off` 会强制关闭；环境变量覆盖生效时，设置页面的开关只读。无论是否开启自动同步，仍可按上方流程手动执行 `npm run export` → `git add data/skills.json` → `git commit` → `git push`。页面顶部的「⧉ 批量 clone」按钮等价于 `npm run clone-all`。
+### Optional Metadata Auto-Sync
 
-## 技术栈
+Metadata auto-sync is **disabled by default**. You can toggle it in `#/settings` or override it via `AUTO_SYNC=on|off` (when set via environment variable, the UI switch becomes read-only).
 
-- **前端**: Vite + React 18 + TypeScript（零 UI 依赖，纯手写 CSS）
-- **后端**: Node 原生 `node:http` + `node:sqlite`（零 npm 依赖，Node 22.13+）
-- **clone**: `git clone --depth 1`，统一存放到 `~/Code/skills-registry/`（可用环境变量 `SKILLS_REGISTRY` 覆盖）
+When enabled, catalog mutations schedule a debounced (~2.5s) `export` -> `git commit` (`SkillHub Bot`) -> `git push` targeting **only** `data/skills.json`. As implemented in [`server/git-sync.mjs`](./server/git-sync.mjs), auto-sync refuses safely if the branch has no upstream, is behind upstream, or has pending commits touching files other than `data/skills.json`.
 
-## 快速开始（开发）
+## Features & UI Routes
 
-```bash
-npm install          # 安装依赖（仅前端，后端零依赖）
-npm run seed         # （可选）导入内置 115 条种子数据
-npm run dev:all      # 前后端一起启动
-# 或分开：npm run dev:server（后端 :8787）+ npm run dev（前端 :5173）
-```
-
-> 环境变量：`SKILLS_REGISTRY`（clone 目录，默认 `~/Code/skills-registry`）、`AGENTS_HOME`（agent 安装探测基准，测试用）、`AUTO_SYNC`（`on` 强制开启、`off` 强制关闭；未设置时读取本地 SQLite，首次使用默认关闭）、`PORT`（后端端口，默认 8787）
-
-## 页面导航（Hash 路由）
-
-| 页面 | 地址 | 说明 |
+| Route | View | Capabilities |
 |---|---|---|
-| 排行榜 | `#/` | 全部仓库，Stars 降序，搜索/过滤/clone |
-| **Skills** | `#/skills` | **skill 级条目**（扫描已 clone 仓库内的 SKILL.md），**安装到本地各 agent**、更新、diff、卸载 |
-| **Agents** | `#/agents` | **每个 agent 的 skill 管理**：来源/更新/卸载/diff/全部更新 |
-| **设置** | `#/settings` | 保存在本地 SQLite 的列表元数据自动同步开关（默认关闭） |
-| **一键导入** | Header「⚡ 导入」 | 输入 owner/repo → 拉取元数据 + 入库 + clone 一条龙 |
-| **详情** | `#/skill/:id` | 安装命令 / Summary / 信息卡 / **README 预览**（本地 clone）/ 相关仓库 / 操作 |
-| Topics | `#/topics` | 按领域（8 类标签）浏览，点击进入过滤榜单 |
-| Topic | `#/topic/:tag` | 某标签下的榜单 |
-| Packs | `#/packs` | 按作者/组织聚合的仓库包 |
-| Pack | `#/pack/:owner` | 某作者的全部仓库 |
-| Official | `#/official` | 官方维护仓库（Anthropic/OpenAI/Google…） |
-| Docs | `#/docs` | 用法 / API / FAQ |
+| `#/` | Leaderboard | Sort by Stars, filter/search, edit/delete rows, tag, clone/pull/remove local clones |
+| `#/skills` | Skill Items | Scans `SKILL.md` files across cloned repos; preview content and install/update/diff per agent |
+| `#/agents` | Agents | Inspect detected local agents (73 supported definitions), toggle bulk/individual enable state, manage/update/uninstall/diff installed skills |
+| `#/skill/:id` | Repo Detail | Install commands, summary card, local `README.md`/`SKILL.md` preview, batch "Install All" to selected/enabled agents |
+| `#/topics`, `#/topic/:tag` | Topics | Browse 8 built-in categories (`official`, `collection`, `tool`, `design`, `research`, `security`, `domain`, `zh`) + custom tags |
+| `#/packs`, `#/pack/:owner` | Packs | Repositories grouped by GitHub owner/organization |
+| `#/official` | Official | Curated view of official vendor repositories |
+| `#/settings` | Settings | Toggle metadata auto-sync (`metadata_auto_sync`) |
+| `#/docs` | Docs | Built-in usage, API, and FAQ reference |
+| Header `Import` | One-Click Import | Enter `owner/repo` to fetch GitHub metadata, insert into catalog, and shallow-clone |
 
-## 功能
+## Environment Variables
 
-| 功能 | 说明 |
-|---|---|
-| 排行榜 | 按 Stars 排序，含类型徽章 / 语言 / Star 条形图 / 搜索过滤 |
-| 录入 | 填 `owner/repo` 可一键从 GitHub 拉取元数据（desc/stars/lang）自动填充 |
-| README 预览 | 已 clone 的仓库在详情页直接预览 README/SKILL.md（手写轻量 Markdown 渲染） |
-| **安装到 agent** | skill 级安装到 Claude Code / Codex / Cursor / Gemini CLI 等 15 个 agent（`npx skills` 目录约定，copy 模式） |
-| **一键安装全部** | 仓库详情页「⤓ 安装到全部 agents」：仓库内所有 skills × 选定 agents 批量安装（含结果汇总/失败列表） |
-| **agent 管理** | `#/agents`：每个 agent 的已安装 skills（来源追溯/更新/卸载/diff/全部更新） |
-| **更新 / diff** | 已安装 skill 可一键 git 同步更新；diff 对比源仓库与已安装的文件级差异（`diff -u`） |
-| 打标 | 8 个内置标签（官方/合集/工具/设计/研究/安全/垂直/中文）+ 自定义标签 |
-| 编辑 / 删除 | 行内操作，删除有确认弹窗 |
-| clone 管理 | 每行一键 clone 到本地 registry，支持移除、批量扫描同步状态 |
-| 统计 | 仓库总数 / Star 总和 / 官方数 / 中文数 / 已 clone 数 |
-
-## API（后端 :8787）
-
-| 方法 | 路径 | 说明 |
+| Variable | Purpose | Default |
 |---|---|---|
-| GET | `/api/skills` | 列表（Stars 降序） |
-| GET | `/api/settings` | 查询设置；`metadata_auto_sync` 含 `enabled` / `locked` / `source` |
-| PATCH | `/api/settings/metadata-auto-sync` | 请求 JSON `{"enabled": true}`；`enabled` 非布尔值返回 400，环境变量锁定时返回 409 |
-| POST | `/api/skills` | 录入 `{full_name, desc, stars, lang, url, tags}` |
-| PATCH | `/api/skills/:id` | 更新（打标/改字段） |
-| DELETE | `/api/skills/:id` | 删除 |
-| GET | `/api/skills/:id/clone` | 查询本地 clone 状态 |
-| POST | `/api/skills/:id/clone` | clone 到 registry |
-| POST | `/api/skills/:id/clone/remove` | 移除本地 clone |
-| POST | `/api/rescan` | 扫描 registry 目录同步 clone 状态 |
-| GET | `/api/fetch?repo=owner/repo` | 从 GitHub 拉取仓库元数据（需 gh CLI 已登录） |
-| GET | `/api/stats` | 汇总统计 |
+| `PORT` | Backend HTTP port | `8787` |
+| `SKILLS_REGISTRY` | Directory for cloned repositories | `~/Code/skills-registry` |
+| `SKILLS_DB_PATH` | SQLite database file path | `data/skills.db` |
+| `AGENTS_HOME` | Base home directory for agent skill path resolution/detection | `os.homedir()` |
+| `AUTO_SYNC` | Force metadata auto-sync `on` or `off` (locks `#/settings` toggle) | Unset (reads SQLite; defaults to off) |
+| `SYNC_GIT_NAME` / `SYNC_GIT_EMAIL` | Git author metadata for auto-sync commits | `SkillHub Bot` / `skills-bot@users.noreply.github.com` |
+| `VITE_PROXY_TARGET` | Dev proxy target for `/api` in [`vite.config.ts`](./vite.config.ts) | `http://localhost:8787` |
 
-## 目录结构
+## Backend API (`:8787`)
 
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/skills` | List catalog repositories ordered by Stars descending |
+| `POST` | `/api/skills` | Create a catalog entry `{full_name, desc, stars, lang, url, tags}` |
+| `PATCH` | `/api/skills/:id` | Update repository fields or tags |
+| `DELETE` | `/api/skills/:id` | Delete SQLite record only (keeps cloned files on disk) |
+| `GET` | `/api/fetch?repo=owner/repo` | Fetch GitHub repository metadata via `gh api` |
+| `POST` | `/api/repos/import` | Fetch metadata, insert into DB (if new), and shallow-clone |
+| `GET` | `/api/stats` | Return total repos, stars, official count, Chinese-tag count, cloned count, and registry path |
+| `GET` | `/api/skills/:id/clone` | Check local `.git` clone state and last commit timestamp |
+| `POST` | `/api/skills/:id/clone` | Shallow-clone repository into `SKILLS_REGISTRY` |
+| `POST` | `/api/skills/:id/pull` | Run `git pull --ff-only` in an existing clone |
+| `POST` | `/api/skills/:id/clone/remove` | Remove the local clone directory and set `cloned = 0` |
+| `POST` | `/api/rescan` | Scan `SKILLS_REGISTRY` and sync `cloned` flags in SQLite |
+| `POST` | `/api/clone-all` | Clone all missing repositories marked `cloned = 1` |
+| `GET` | `/api/skills/:id/readme` | Read `README.md` or `SKILL.md` preview from local clone (up to 8,000 chars) |
+| `GET` | `/api/skill-items` | List all `SKILL.md` items scanned across cloned repositories (30s TTL cache) |
+| `GET` | `/api/repos/:id/items` | List `SKILL.md` items inside a specific cloned repository |
+| `GET` | `/api/skill-items/content?repo=<id>&path=<rel>` | Read raw `SKILL.md` content within a cloned repository (up to 20,000 chars) |
+| `POST` | `/api/repos/:id/install-all` | Batch-install selected/all skills from a repo to selected/enabled agents |
+| `GET` | `/api/agents` | List all 73 supported agents with install detection and `enabled` preference |
+| `PATCH` | `/api/agents` | Bulk-update agent `enabled` preferences |
+| `PATCH` | `/api/agents/:id` | Update a single agent's `enabled` preference |
+| `GET` | `/api/installed` | List installed skills across agents enriched with source repo provenance |
+| `POST` | `/api/skills/items/install` / `update` | Install or update a skill into an agent directory (`copy` mode) |
+| `POST` | `/api/skills/items/uninstall` | Remove a skill from an agent directory and `installed_items` |
+| `POST` | `/api/skills/items/diff` | Compare source clone directory vs. installed agent copy (`diff -u`) |
+| `GET` | `/api/settings` | Query settings (`metadata_auto_sync`) |
+| `PATCH` | `/api/settings/metadata-auto-sync` | Toggle auto-sync (`400` on non-boolean, `409` if locked by `AUTO_SYNC`) |
+
+## Repository Layout
+
+```text
 SkillHub/
-├── index.html              # Vite 入口
-├── server/
-│   ├── index.mjs           # 后端（http + sqlite + git）
-│   └── seed.mjs            # 初始数据导入
+├── index.html                  # Vite HTML entry
+├── package.json                # Frontend deps & CLI/dev scripts
+├── vite.config.ts              # Vite + Vitest config and /api proxy
 ├── data/
-│   ├── skills.db           # SQLite 数据库（git 忽略）
-│   └── skills-seed.json    # 初始 115 条种子数据
-├── src/
-│   ├── App.tsx             # 状态管理 + 组件组装
-│   ├── api.ts / types.ts
-│   └── components/         # Hero/DistCharts/Toolbar/Leaderboard/SkillForm/TagEditor/Modal
-└── legacy/                 # 旧的单文件版本备份
+│   ├── skills-seed.json        # 115-repo starter seed dataset
+│   └── skills.json             # Git-tracked sync snapshot (metadata + cloned flags)
+├── docs/superpowers/           # Design specs and implementation plans
+├── legacy/
+│   └── standalone-index.html   # Legacy single-file prototype backup
+├── scripts/
+│   ├── clone-all.mjs           # Batch shallow-clone CLI script
+│   ├── dev.mjs                 # Concurrent backend + Vite dev launcher
+│   ├── sync.mjs                # export / import / import --prune sync CLI
+│   └── ...                     # Smoke & UI verification scripts
+├── server/
+│   ├── index.mjs               # Zero-dep HTTP + SQLite API server
+│   ├── agents.mjs              # 73-agent directory registry, installer, and diffDirs
+│   ├── agent-prefs.mjs         # Per-agent enable preferences
+│   ├── auto-sync.mjs           # Debounced metadata auto-sync controller
+│   ├── git-sync.mjs            # Safe git add/commit/push guard for data/skills.json
+│   └── seed.mjs                # Seed loader and tag classifier
+├── src/                        # React 18 + TypeScript UI & tests
+└── test/                       # Node native backend & settings tests
 ```
-
-## 注意
-
-- 删除仓库只移除数据库记录，**不会**删除本地已 clone 的目录（防止误删代码）
-- `gh` CLI 需已登录（`gh auth login`），`/api/fetch` 依赖它
-- 数据全部存本地 `data/skills.db`，clone 目录在 `~/Code/skills-registry/`
